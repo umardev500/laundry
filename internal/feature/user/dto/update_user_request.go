@@ -7,12 +7,12 @@ import (
 )
 
 type UpdateUserRequest struct {
-	Email    *string `json:"email" validate:"omitempty,email"`
-	Password *string `json:"password"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Password string `json:"password"`
 }
 
 func (r *UpdateUserRequest) HashPassword() ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(*r.Password), bcrypt.DefaultCost)
+	return bcrypt.GenerateFromPassword([]byte(r.Password), bcrypt.DefaultCost)
 }
 
 func (r *UpdateUserRequest) ToDomainUserWithID(uid uuid.UUID) (*domain.User, error) {
@@ -23,7 +23,7 @@ func (r *UpdateUserRequest) ToDomainUserWithID(uid uuid.UUID) (*domain.User, err
 
 	return &domain.User{
 		ID:       uid,
-		Email:    *r.Email,
+		Email:    r.Email,
 		Password: string(hashed),
 		Status:   domain.StatusActive,
 	}, nil

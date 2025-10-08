@@ -12,3 +12,9 @@ var (
 	ErrUnauthorizedRoleAccess = fmt.Errorf("unauthorized access to role")
 	ErrMissingTenantID        = fmt.Errorf("tenant ID cannot be nil")
 )
+
+var (
+	ErrFeatureNotFound  = fmt.Errorf("feature not found")
+	ErrFeatureDeleted   = fmt.Errorf("feature has been deleted")
+	ErrFeatureImmutable = fmt.Errorf("feature cannot be created or deleted manually")
+)

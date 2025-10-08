@@ -13,4 +13,8 @@ var ProviderSet = wire.NewSet(
 	handler.NewHandler,          // HTTP handler
 	service.NewService,          // Business logic
 	repository.NewEntRepository, // Repository (Ent)
+
+	handler.NewFeatureHandler,
+	service.NewFeatureService,
+	repository.NewFeatureEntRepository,
 )
