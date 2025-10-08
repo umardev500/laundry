@@ -23,6 +23,17 @@ func main() {
 	client := entdb.NewEntClient(cfg)
 	defer client.Client.Close()
 
+	switch cfg.App.Env {
+	case "development":
+		log.Info().Msg("🧩 Running in development mode")
+	case "staging":
+		log.Info().Msg("🧪 Running in staging mode")
+	case "production":
+		log.Info().Msg("🚀 Running in production mode")
+	default:
+		log.Info().Msgf("⚙️ Running in %s mode", cfg.App.Env)
+	}
+
 	ctx := context.Background()
 	if err := entdb.RunMigration(ctx, client.Client); err != nil {
 		log.Fatal().Err(err).Msg("Failed to run migration")
