@@ -3,6 +3,7 @@ package entdb
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql/schema"
 	"github.com/rs/zerolog/log"
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/internal/config"
@@ -22,8 +23,14 @@ func NewEntClient(cfg *config.Config) *Client {
 		log.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
+	dropUnsafe := cfg.App.Env == "development"
+
 	// Run the auto migration tool.
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(
+		context.Background(),
+		schema.WithDropColumn(dropUnsafe),
+		schema.WithDropIndex(dropUnsafe),
+	); err != nil {
 		log.Fatal().Err(err).Msg("Failed to create schema resources")
 	}
 

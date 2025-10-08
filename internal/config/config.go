@@ -5,6 +5,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+type App struct {
+	Env string `mapstructure:"env"`
+}
+
 type ServerConfig struct {
 	Host string `mapstructure:"host"`
 	Port string `mapstructure:"port"`
@@ -40,6 +44,7 @@ type Redis struct {
 }
 
 type Config struct {
+	App      App            `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Firebase Firebase       `mapstructure:"firebase"`
