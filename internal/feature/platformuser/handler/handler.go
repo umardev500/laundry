@@ -11,22 +11,31 @@ import (
 	"github.com/umardev500/laundry/internal/feature/platformuser/mapper"
 	"github.com/umardev500/laundry/internal/feature/platformuser/query"
 	"github.com/umardev500/laundry/pkg/httpx"
+	"github.com/umardev500/laundry/pkg/validator"
 
 	pkgQuery "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
-	service contract.Service
+	service   contract.Service
+	validator *validator.Validator
 }
 
-func NewHandler(service contract.Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service contract.Service, validator *validator.Validator) *Handler {
+	return &Handler{
+		service:   service,
+		validator: validator,
+	}
 }
 
 // Create a new PlatformUser
 func (h *Handler) Create(c *fiber.Ctx) error {
 	var req dto.CreatePlatformUserRequest
 	if err := c.BodyParser(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
 

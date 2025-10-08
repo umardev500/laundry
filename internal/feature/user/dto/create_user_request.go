@@ -7,7 +7,7 @@ import (
 
 type CreateUserRequest struct {
 	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (r *CreateUserRequest) HashPassword() ([]byte, error) {

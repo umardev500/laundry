@@ -14,6 +14,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/internal/infra/database/redis"
+	"github.com/umardev500/laundry/pkg/validator"
 )
 
 var AppSet = wire.NewSet(
@@ -24,6 +25,7 @@ var AppSet = wire.NewSet(
 	auth.ProviderSet,
 	router.NewRouter,
 	redis.NewRedisClient,
+	validator.New,
 	newRegistrars,
 )
 

@@ -22,9 +22,9 @@ func NewService(repo repository.Repository) contract.Service {
 }
 
 // Create implements contract.Service.
-func (s *serviceImpl) Create(ctx *appctx.Context, user *domain.User) (*domain.User, error) {
-	user, err := s.repo.FindByEmail(ctx, user.Email)
-	if err != nil {
+func (s *serviceImpl) Create(ctx *appctx.Context, u *domain.User) (*domain.User, error) {
+	user, err := s.repo.FindByEmail(ctx, u.Email)
+	if err != nil && !ent.IsNotFound(err) {
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func (s *serviceImpl) Create(ctx *appctx.Context, user *domain.User) (*domain.Us
 		return nil, domain.ErrUserAlreadyExists
 	}
 
-	return s.repo.Create(ctx, user)
+	return s.repo.Create(ctx, u)
 }
 
 // Delete implements contract.Service.

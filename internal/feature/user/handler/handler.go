@@ -11,23 +11,30 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user/mapper"
 	"github.com/umardev500/laundry/internal/feature/user/query"
 	"github.com/umardev500/laundry/pkg/httpx"
+	"github.com/umardev500/laundry/pkg/validator"
 
 	pkgQuery "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
-	service contract.Service
+	service   contract.Service
+	validator *validator.Validator
 }
 
-func NewHandler(service contract.Service) *Handler {
+func NewHandler(service contract.Service, validator *validator.Validator) *Handler {
 	return &Handler{
-		service: service,
+		service:   service,
+		validator: validator,
 	}
 }
 
 func (h *Handler) Create(c *fiber.Ctx) error {
 	var req dto.CreateUserRequest
 	if err := c.BodyParser(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
 
@@ -97,6 +104,10 @@ func (h *Handler) GetUser(c *fiber.Ctx) error {
 func (h *Handler) Update(c *fiber.Ctx) error {
 	var req dto.UpdateUserRequest
 	if err := c.BodyParser(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
 

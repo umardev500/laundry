@@ -10,14 +10,19 @@ import (
 	"github.com/umardev500/laundry/internal/feature/auth/dto"
 	"github.com/umardev500/laundry/internal/feature/auth/mapper"
 	"github.com/umardev500/laundry/pkg/httpx"
+	"github.com/umardev500/laundry/pkg/validator"
 )
 
 type Handler struct {
-	service contract.Service
+	service   contract.Service
+	validator *validator.Validator
 }
 
-func NewHandler(service contract.Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service contract.Service, validator *validator.Validator) *Handler {
+	return &Handler{
+		service:   service,
+		validator: validator,
+	}
 }
 
 // Login handles POST /auth/login
@@ -27,12 +32,14 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
+	if err := h.validator.Struct(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
 	ctx := appctx.New(c.UserContext())
 
-	// Call service
 	result, err := h.service.Login(ctx, req.Email, req.Password)
 	if err != nil {
-		// Customize error handling if needed
 		switch {
 		case errors.Is(err, domain.ErrInvalidCredentials):
 			return httpx.Unauthorized(c, err.Error())
