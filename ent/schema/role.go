@@ -19,7 +19,7 @@ type Role struct {
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
-		field.UUID("tenant_id", uuid.UUID{}).Immutable().Unique().
+		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable().Unique().Nillable().
 			Comment("Needed if role is associated with a tenant"),
 		field.String("name").NotEmpty(),
 		field.String("description").Optional(),
@@ -36,5 +36,11 @@ func (Role) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
+
+		edge.From("tenant", Tenant.Type).
+			Ref("roles").
+			Field("tenant_id").
+			Unique().
+			Immutable(),
 	}
 }

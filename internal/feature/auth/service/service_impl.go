@@ -56,7 +56,7 @@ func (s *serviceImpl) Login(ctx *appctx.Context, email, password string) (*domai
 		Subject(user.ID.String()).
 		IssuedAt(now).
 		Expiration(exp).
-		Claim(string(domain.ClaimScope), domain.ScopeUser)
+		Claim(string(appctx.ContextKeyScope), appctx.ScopeUser)
 
 	token, err := tokenBuilder.Build()
 	if err != nil {
