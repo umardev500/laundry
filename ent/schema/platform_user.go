@@ -36,6 +36,11 @@ func (PlatformUser) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+
+		edge.From("role", Role.Type).
+			Ref("platform_users").
+			Required().
+			Immutable(),
 	}
 }
 
