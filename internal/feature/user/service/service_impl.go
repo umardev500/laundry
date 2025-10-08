@@ -55,7 +55,7 @@ func (s *serviceImpl) GetByEmail(ctx *appctx.Context, email string) (*domain.Use
 
 // GetByID implements contract.Service.
 func (s *serviceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.User, error) {
-	return s.repo.FindById(ctx, id)
+	return s.findExistingUser(ctx, id)
 }
 
 // List implements contract.Service.

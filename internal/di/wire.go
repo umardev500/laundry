@@ -9,6 +9,7 @@ import (
 	fiberApp "github.com/umardev500/laundry/internal/app/fiber"
 	"github.com/umardev500/laundry/internal/app/router"
 	"github.com/umardev500/laundry/internal/config"
+	"github.com/umardev500/laundry/internal/feature/platformuser"
 	"github.com/umardev500/laundry/internal/feature/user"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 )
@@ -17,6 +18,7 @@ var AppSet = wire.NewSet(
 	entdb.NewEntClient,
 	fiberApp.NewFiberApp,
 	user.ProviderSet,
+	platformuser.ProviderSet,
 	router.NewRouter,
 	newRegistrars,
 )
@@ -27,9 +29,11 @@ func Initialize(cfg *config.Config) (*router.Router, error) {
 }
 
 func newRegistrars(
-	userReg router.RouteRegistrar,
+	userReg *user.Routes,
+	platformUserReq *platformuser.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
+		platformUserReq,
 	}
 }

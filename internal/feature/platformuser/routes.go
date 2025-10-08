@@ -1,9 +1,9 @@
-package user
+package platformuser
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/umardev500/laundry/internal/app/router"
-	"github.com/umardev500/laundry/internal/feature/user/handler"
+	"github.com/umardev500/laundry/internal/feature/platformuser/handler"
 )
 
 type Routes struct {
@@ -15,17 +15,17 @@ var _ router.RouteRegistrar = (*Routes)(nil)
 
 // RegisterRoutes implements router.RouteRegistrar.
 func (r *Routes) RegisterRoutes(router fiber.Router) {
-	user := router.Group("users")
+	pu := router.Group("platform-users")
 
-	user.Post("/", r.handler.Create)
-	user.Get("/", r.handler.List)
-	user.Get("/:id", r.handler.GetUser)
-	user.Delete("/:id", r.handler.Delete)
-	user.Delete("/:id/purge", r.handler.Purge)
-	user.Put("/:id", r.handler.Update)
-	user.Patch("/:id/status/:status", r.handler.UpdateStatus)
+	pu.Post("/", r.handler.Create)
+	pu.Get("/", r.handler.List)
+	pu.Get("/:id", r.handler.Get)
+	pu.Delete("/:id", r.handler.Delete)
+	pu.Delete("/:id/purge", r.handler.Purge)
+	pu.Patch("/:id/status/:status", r.handler.UpdateStatus)
 }
 
+// NewRoutes returns a new Routes instance
 func NewRoutes(handler *handler.Handler) *Routes {
 	return &Routes{
 		handler: handler,

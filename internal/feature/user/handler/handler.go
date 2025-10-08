@@ -11,6 +11,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user/mapper"
 	"github.com/umardev500/laundry/internal/feature/user/query"
 	"github.com/umardev500/laundry/pkg/httpx"
+
+	pkgQuery "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
@@ -49,7 +51,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	var q query.GetByIDQuery
+	var q pkgQuery.GetByIDQuery
 	if err := c.ParamsParser(&q); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -98,7 +100,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
-	var q query.GetByIDQuery
+	var q pkgQuery.GetByIDQuery
 	if err := c.ParamsParser(&q); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -188,7 +190,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Purge(c *fiber.Ctx) error {
-	var q query.GetByIDQuery
+	var q pkgQuery.GetByIDQuery
 	if err := c.ParamsParser(&q); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
