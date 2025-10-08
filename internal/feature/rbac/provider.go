@@ -17,4 +17,8 @@ var ProviderSet = wire.NewSet(
 	handler.NewFeatureHandler,
 	service.NewFeatureService,
 	repository.NewFeatureEntRepository,
+
+	handler.NewPermissionHandler,
+	service.NewPermissionService,
+	repository.NewPermissionRepository,
 )

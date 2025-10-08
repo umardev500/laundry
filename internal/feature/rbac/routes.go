@@ -8,8 +8,9 @@ import (
 
 // Routes holds the handler for Role endpoints.
 type Routes struct {
-	handler        *handler.Handler
-	featureHandler *handler.FeatureHandler
+	handler           *handler.Handler
+	featureHandler    *handler.FeatureHandler
+	permissionHandler *handler.PermissionHandler
 }
 
 // Ensure Routes implements the RouteRegistrar interface
@@ -36,12 +37,23 @@ func (r *Routes) RegisterRoutes(router fiber.Router) {
 	feature.Get("/:id", r.featureHandler.Get)
 	feature.Put("/:id", r.featureHandler.Update)
 	feature.Patch("/:id/:status", r.featureHandler.UpdateStatus)
+
+	// --- Permission Routes ---
+	perm := base.Group("permissions")
+	perm.Get("/", r.permissionHandler.List)
+	perm.Get("/:id", r.permissionHandler.Get)
+	perm.Put("/:id", r.permissionHandler.Update)
+	perm.Patch("/:id/:status", r.permissionHandler.UpdateStatus) // e.g. /permissions/:id/active or /permissions/:id/suspended
+	perm.Delete("/:id", r.permissionHandler.Delete)
+	perm.Delete("/:id/purge", r.permissionHandler.Purge)
+
 }
 
 // NewRoutes creates a new Role routes instance.
-func NewRoutes(handler *handler.Handler, featureHandler *handler.FeatureHandler) *Routes {
+func NewRoutes(handler *handler.Handler, featureHandler *handler.FeatureHandler, permissionHandler *handler.PermissionHandler) *Routes {
 	return &Routes{
-		handler:        handler,
-		featureHandler: featureHandler,
+		handler:           handler,
+		featureHandler:    featureHandler,
+		permissionHandler: permissionHandler,
 	}
 }

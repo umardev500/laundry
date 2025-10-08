@@ -18,3 +18,9 @@ var (
 	ErrFeatureDeleted   = fmt.Errorf("feature has been deleted")
 	ErrFeatureImmutable = fmt.Errorf("feature cannot be created or deleted manually")
 )
+
+var (
+	ErrPermissionAlreadyExists = fmt.Errorf("permission already exists")
+	ErrPermissionNotFound      = fmt.Errorf("permission not found")
+	ErrPermissionDeleted       = fmt.Errorf("permission has been deleted")
+)

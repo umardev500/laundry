@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // Permission holds the schema definition for the Permission entity.
@@ -22,6 +23,9 @@ func (Permission) Fields() []ent.Field {
 		field.String("display_name").NotEmpty().Comment("Display name of permission e.g. Create Order"),
 		field.String("description").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Enum("status").
+			Values(string(types.StatusActive), string(types.StatusSuspended), string(types.StatusDeleted)).
+			Default(string(types.StatusActive)),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),
 	}
