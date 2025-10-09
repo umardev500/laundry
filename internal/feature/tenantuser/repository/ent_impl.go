@@ -32,7 +32,6 @@ func (r *tenantUserRepository) Create(ctx *appctx.Context, tu *domain.TenantUser
 	conn := r.client.GetConn(ctx)
 
 	entTenantUser, err := conn.TenantUser.Create().
-		SetID(tu.ID).
 		SetUserID(tu.UserID).
 		SetTenantID(tu.TenantID).
 		SetStatus(tenantuser.Status(tu.Status)).

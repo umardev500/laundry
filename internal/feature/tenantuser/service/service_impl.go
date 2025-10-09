@@ -19,6 +19,20 @@ func NewService(repo repository.Repository) contract.Service {
 	return &serviceImpl{repo: repo}
 }
 
+// Create creates a tenant-user mapping if it doesn't already exist.
+func (s *serviceImpl) Create(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
+	// Check existing mapping by user+tenant
+	existing, err := s.repo.FindByUserAndTenant(ctx, tu.UserID, tu.TenantID)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, domain.ErrTenantUserAlreadyExists
+	}
+
+	return s.repo.Create(ctx, tu)
+}
+
 func (s *serviceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
 	return s.findExistingTenantUser(ctx, id)
 }

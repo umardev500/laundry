@@ -55,5 +55,6 @@ func newRegistrars(
 		tenantReg,
 		rbacReg,
 		tenantReg,
+		tenantUserReg,
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/contract"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/domain"
+	"github.com/umardev500/laundry/internal/feature/tenantuser/dto"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/mapper"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/query"
 	"github.com/umardev500/laundry/pkg/httpx"
@@ -23,6 +24,34 @@ type Handler struct {
 // NewTenantUserHandler creates a new TenantUserHandler instance.
 func NewTenantUserHandler(service contract.Service, validator *validator.Validator) *Handler {
 	return &Handler{service: service, validator: validator}
+}
+
+// 🔹 Create a TenantUser (assign a user to a tenant)
+func (h *Handler) Create(c *fiber.Ctx) error {
+	var req dto.CreateTenantUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	ctx := appctx.New(c.UserContext())
+	tu := req.ToDomain(ctx)
+	result, err := h.service.Create(ctx, tu)
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrTenantOrUserNotFound):
+			return httpx.NotFound(c, err.Error())
+		case errors.Is(err, domain.ErrTenantUserAlreadyExists):
+			return httpx.Conflict(c, err.Error())
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
+	}
+
+	return httpx.JSON(c, fiber.StatusCreated, mapper.ToTenantUserResponse(result))
 }
 
 // 📄 List all tenant users (paginated)

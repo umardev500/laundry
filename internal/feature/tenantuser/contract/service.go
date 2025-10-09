@@ -9,6 +9,7 @@ import (
 )
 
 type Service interface {
+	Create(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error)
 	GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error)
 	List(ctx *appctx.Context, q *query.ListTenantUserQuery) (*pagination.PageData[domain.TenantUser], error)
 	UpdateStatus(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error)
