@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -31,6 +32,14 @@ func (Tenant) Fields() []ent.Field {
 // Edges of the Tenant.
 func (Tenant) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("roles", Role.Type),
+		edge.To("roles", Role.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
+
+		edge.To("tenant_users", TenantUser.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }

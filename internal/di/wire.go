@@ -13,6 +13,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/platformuser"
 	"github.com/umardev500/laundry/internal/feature/rbac"
 	"github.com/umardev500/laundry/internal/feature/tenant"
+	"github.com/umardev500/laundry/internal/feature/tenantuser"
 	"github.com/umardev500/laundry/internal/feature/user"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/internal/infra/database/redis"
@@ -27,6 +28,7 @@ var AppSet = wire.NewSet(
 	auth.ProviderSet,
 	tenant.ProviderSet,
 	router.NewRouter,
+	tenantuser.ProviderSet,
 	rbac.ProviderSet,
 	redis.NewRedisClient,
 	validator.New,
@@ -44,6 +46,7 @@ func newRegistrars(
 	authReg *auth.Routes,
 	tenantReg *tenant.Routes,
 	rbacReg *rbac.Routes,
+	tenantUserReg *tenantuser.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
@@ -51,5 +54,6 @@ func newRegistrars(
 		authReg,
 		tenantReg,
 		rbacReg,
+		tenantReg,
 	}
 }

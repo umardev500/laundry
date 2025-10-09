@@ -12,22 +12,16 @@ import (
 	platformUserSeeder "github.com/umardev500/laundry/internal/feature/platformuser/seeder"
 	rbacSeeder "github.com/umardev500/laundry/internal/feature/rbac/seeder"
 	tenantSeeder "github.com/umardev500/laundry/internal/feature/tenant/seeder"
+	tenantUserSeeder "github.com/umardev500/laundry/internal/feature/tenantuser/seeder"
 	userSeeder "github.com/umardev500/laundry/internal/feature/user/seeder"
 )
-
-// func toSeeders[T any](src []T) []seeder.Seeder {
-// 	out := make([]seeder.Seeder, len(src))
-// 	for i, s := range src {
-// 		out[i] = any(s).(seeder.Seeder)
-// 	}
-// 	return out
-// }
 
 func NewSeederSet(
 	rbac []rbacSeeder.RBACSeeder,
 	user []userSeeder.UserSeederSet,
 	tenant []tenantSeeder.TenantSeederSet,
 	platformUser []platformUserSeeder.PlatformUserSeederSet,
+	tenantUser []tenantUserSeeder.TenantUserSeederSet,
 ) []seeder.Seeder {
 	var all []seeder.Seeder
 
@@ -51,6 +45,11 @@ func NewSeederSet(
 		all = append(all, s)
 	}
 
+	// append all tenant user seeder
+	for _, s := range tenantUser {
+		all = append(all, s)
+	}
+
 	return all
 }
 
@@ -61,6 +60,7 @@ func InitialzeSeeder(cfg *config.Config) ([]seeder.Seeder, error) {
 		rbacSeeder.ProviderSet,
 		tenantSeeder.ProviderSet,
 		platformUserSeeder.ProviderSet,
+		tenantUserSeeder.ProviderSet,
 		NewSeederSet,
 	)
 
