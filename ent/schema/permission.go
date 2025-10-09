@@ -19,7 +19,7 @@ type Permission struct {
 func (Permission) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
-		field.String("name").NotEmpty().Comment("Name of permission e.g. create_order"),
+		field.String("name").NotEmpty().Unique().Comment("Name of permission e.g. create_order"),
 		field.String("display_name").NotEmpty().Comment("Display name of permission e.g. Create Order"),
 		field.String("description").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),

@@ -20,7 +20,7 @@ func (Tenant) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.String("name").NotEmpty(),
 		field.String("phone").NotEmpty(),
-		field.String("email").NotEmpty(),
+		field.String("email").NotEmpty().Unique(),
 		field.Enum("status").Values("active", "suspended", "deleted").Default("active").Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

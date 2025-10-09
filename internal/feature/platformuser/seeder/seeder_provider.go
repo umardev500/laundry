@@ -5,17 +5,17 @@ import (
 	"github.com/umardev500/laundry/internal/infra/database/seeder"
 )
 
-type UserSeederSet seeder.Seeder
+type PlatformUserSeederSet seeder.Seeder
 
 func NewUserSeederSet(
-	user *UserSeeder,
-) []UserSeederSet {
-	return []UserSeederSet{
+	user *PlatformUserSeeder,
+) []PlatformUserSeederSet {
+	return []PlatformUserSeederSet{
 		user,
 	}
 }
 
 var ProviderSet = wire.NewSet(
-	NewUserSeeder,
 	NewUserSeederSet,
+	NewPlatformUserSeeder,
 )

@@ -36,7 +36,7 @@ generate:
 # Run migrations (optional)
 migrate:
 	@echo "📦 Running Ent migrations..."
-	@go run ./cmd/migrate/migrate.go
+	@go run ./cmd/migrate/main.go
 
 # Clean generated files but keep schema
 clean:

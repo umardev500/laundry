@@ -10,7 +10,7 @@ func RunAll(ctx context.Context, seeders []Seeder) error {
 	for _, s := range seeders {
 		log.Info().Msgf("🌱 Running seeder: %T", s)
 		if err := s.Seed(ctx); err != nil {
-			log.Fatal().Err(err).Msg("Failed to run seeder")
+			log.Fatal().Err(err).Msgf("Failed to run seeder: %T", s)
 			return err
 		}
 	}

@@ -19,7 +19,7 @@ type Feature struct {
 func (Feature) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
-		field.String("name").NotEmpty(),
+		field.String("name").NotEmpty().Unique(),
 		field.String("description").Optional(),
 		field.Enum("status").
 			Values(string(types.StatusActive), string(types.StatusSuspended), string(types.StatusDeleted)).

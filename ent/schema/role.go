@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +20,7 @@ type Role struct {
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
-		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable().Unique().Nillable().
+		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable().Nillable().
 			Comment("Needed if role is associated with a tenant"),
 		field.String("name").NotEmpty(),
 		field.String("description").Optional(),
@@ -42,5 +43,11 @@ func (Role) Edges() []ent.Edge {
 			Field("tenant_id").
 			Unique().
 			Immutable(),
+	}
+}
+
+func (Role) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("tenant_id", "name").Unique(),
 	}
 }

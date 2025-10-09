@@ -13,20 +13,20 @@ import (
 	"github.com/umardev500/laundry/pkg/security"
 )
 
-type AdminUserSeeder struct {
+type PlatformUserSeeder struct {
 	client *entdb.Client
 }
 
 // Ensure UserSeeder implements the Seeder interface
-var _ seeder.Seeder = (*AdminUserSeeder)(nil)
+var _ seeder.Seeder = (*PlatformUserSeeder)(nil)
 
-func NewAdminUserSeeder(clinet *entdb.Client) *AdminUserSeeder {
-	return &AdminUserSeeder{
+func NewPlatformUserSeeder(clinet *entdb.Client) *PlatformUserSeeder {
+	return &PlatformUserSeeder{
 		client: clinet,
 	}
 }
 
-func (s *AdminUserSeeder) Seed(ctx context.Context) error {
+func (s *PlatformUserSeeder) Seed(ctx context.Context) error {
 	log.Info().Msg("🌿 Seeding admin user...")
 	conn := s.client.GetConn(ctx)
 
@@ -57,6 +57,7 @@ func (s *AdminUserSeeder) Seed(ctx context.Context) error {
 		Create().
 		SetID(uuid.MustParse("11111111-1111-1111-1111-111111111111")).
 		SetUserID(adminID).
+		AddRoleIDs(uuid.MustParse("22222222-2222-2222-2222-222222222222")).
 		SetStatus(platformuser.Status(user.StatusActive)).
 		OnConflict(
 			sql.ConflictColumns(platformuser.FieldUserID),
