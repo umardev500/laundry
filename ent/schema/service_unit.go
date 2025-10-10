@@ -24,6 +24,7 @@ func (ServiceUnit) Fields() []ent.Field {
 		field.String("symbol").Optional().Comment("Short form like 'pc', 'kg', 'set'"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+		field.Time("deleted_at").Optional().Nillable(),
 	}
 }
 

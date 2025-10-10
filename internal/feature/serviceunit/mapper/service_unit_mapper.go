@@ -17,6 +17,7 @@ func FromEnt(e *ent.ServiceUnit) *domain.ServiceUnit {
 		Symbol:    e.Symbol,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
+		DeletedAt: e.DeletedAt,
 	}
 }
 

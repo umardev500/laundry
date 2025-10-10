@@ -77,6 +77,7 @@ func (e *entImpl) Update(ctx *appctx.Context, s *domain.ServiceUnit) (*domain.Se
 		UpdateOneID(s.ID).
 		SetName(s.Name).
 		SetNillableSymbol(&s.Symbol).
+		SetNillableDeletedAt(s.DeletedAt).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -101,6 +102,10 @@ func (e *entImpl) List(ctx *appctx.Context, q *query.ListServiceUnitQuery) (*pag
 
 	if q.Search != "" {
 		qb = qb.Where(serviceunit.NameContainsFold(q.Search))
+	}
+
+	if !q.IncludeDeleted {
+		qb = qb.Where(serviceunit.DeletedAtIsNil())
 	}
 
 	switch q.Order {

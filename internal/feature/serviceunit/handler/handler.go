@@ -132,3 +132,18 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 	return httpx.NoContent(c)
 }
+
+// Purge handles DELETE /service-units/:id/purge (hard delete)
+func (h *Handler) Purge(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return httpx.BadRequest(c, "invalid id")
+	}
+
+	ctx := appctx.New(c.UserContext())
+	if err := h.service.Purge(ctx, id); err != nil {
+		return httpx.InternalServerError(c, err.Error())
+	}
+
+	return httpx.NoContent(c)
+}

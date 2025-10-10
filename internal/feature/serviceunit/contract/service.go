@@ -23,4 +23,7 @@ type Service interface {
 
 	// Delete removes a service unit by ID
 	Delete(ctx *appctx.Context, id uuid.UUID) error
+
+	// Purge permanently removes a service unit by ID (hard delete).
+	Purge(ctx *appctx.Context, id uuid.UUID) error
 }

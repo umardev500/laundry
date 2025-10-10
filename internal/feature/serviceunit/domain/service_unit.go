@@ -14,6 +14,17 @@ type ServiceUnit struct {
 	Symbol    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
+}
+
+// SoftDelete marks the service unit as deleted without removing the record.
+func (s *ServiceUnit) SoftDelete() {
+	now := time.Now().UTC()
+	s.DeletedAt = &now
+}
+
+func (s *ServiceUnit) IsDeleted() bool {
+	return s.DeletedAt != nil
 }
 
 // Update applies updated data.

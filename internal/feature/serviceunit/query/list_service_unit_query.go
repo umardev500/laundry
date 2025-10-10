@@ -13,8 +13,9 @@ const (
 
 type ListServiceUnitQuery struct {
 	pagination.Query
-	Search string `query:"search"`
-	Order  Order  `query:"order"`
+	Search         string `query:"search"`
+	Order          Order  `query:"order"`
+	IncludeDeleted bool   `query:"include_deleted"`
 }
 
 func (q *ListServiceUnitQuery) Normalize() {

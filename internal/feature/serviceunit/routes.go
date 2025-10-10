@@ -19,6 +19,7 @@ func (r *Routes) RegisterRoutes(router fiber.Router) {
 	group.Get("/:id", r.handler.Get)
 	group.Put("/:id", r.handler.Update)
 	group.Delete("/:id", r.handler.Delete)
+	group.Delete("/:id/purge", r.handler.Purge)
 }
 
 func NewRoutes(h *handler.Handler) *Routes {

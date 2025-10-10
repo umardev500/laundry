@@ -58,12 +58,14 @@ func (s *serviceImpl) Update(ctx *appctx.Context, u *domain.ServiceUnit) (*domai
 
 // Delete removes a service unit record permanently.
 func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
-	unit, err := s.findAllowDeleted(ctx, id)
+	unit, err := s.findExisting(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	return s.repo.Delete(ctx, unit.ID)
+	unit.SoftDelete()
+	_, err = s.repo.Update(ctx, unit)
+	return err
 }
 
 // findExisting fetches a service unit that must exist and belong to the current tenant.
@@ -74,6 +76,10 @@ func (s *serviceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.S
 			return nil, domain.ErrServiceUnitNotFound
 		}
 		return nil, err
+	}
+
+	if u.IsDeleted() {
+		return nil, domain.ErrServiceUnitDeleted
 	}
 
 	if !u.BelongsToTenant(ctx) {
@@ -98,4 +104,13 @@ func (s *serviceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*doma
 	}
 
 	return u, nil
+}
+
+func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
+	u, err := s.findAllowDeleted(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.Delete(ctx, u.ID)
 }
