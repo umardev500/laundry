@@ -24,7 +24,7 @@ func (Service) Fields() []ent.Field {
 		field.UUID("service_category_id", uuid.UUID{}).Optional().Nillable(),
 
 		field.String("name").NotEmpty().Unique(),
-		field.Float("price").Default(0.0).
+		field.Float("base_price").Default(0.0).
 			Comment("Price of the service"),
 		field.String("description").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -49,6 +49,11 @@ func (Service) Edges() []ent.Edge {
 			Immutable(),
 
 		edge.To("service_units", ServiceUnit.Type).
+			Annotations(
+				entsql.OnDelete(entsql.SetNull),
+			),
+
+		edge.To("order_items", OrderItem.Type).
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),

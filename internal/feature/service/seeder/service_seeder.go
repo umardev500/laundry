@@ -61,7 +61,7 @@ func (s *ServiceSeeder) Seed(ctx context.Context) error {
 			SetNillableServiceUnitID(&svc.ServiceUnitID).
 			SetNillableServiceCategoryID(&svc.ServiceCategoryID).
 			SetName(svc.Name).
-			SetPrice(svc.Price).
+			SetBasePrice(svc.Price).
 			SetNillableDescription(&svc.Description).
 			OnConflict(
 				sql.ConflictColumns(service.FieldName),

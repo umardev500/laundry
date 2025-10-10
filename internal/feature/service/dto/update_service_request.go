@@ -22,7 +22,7 @@ func (r *UpdateServiceRequest) ToDomain(id uuid.UUID) *domain.Service {
 	return &domain.Service{
 		ID:                id,
 		Name:              r.Name,
-		Price:             price,
+		BasePrice:         price,
 		Description:       r.Description,
 		ServiceUnitID:     utils.NilIfUUIDZero(r.ServiceUnitID),
 		ServiceCategoryID: utils.NilIfUUIDZero(r.ServiceCategoryID),

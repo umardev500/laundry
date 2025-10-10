@@ -56,7 +56,7 @@ func (s *serviceImpl) Update(ctx *appctx.Context, svc *domain.Service) (*domain.
 	}
 
 	// Update fields; price only if non-negative sentinel.
-	existing.Update(svc.Name, svc.Price, svc.Description, svc.ServiceUnitID, svc.ServiceCategoryID)
+	existing.Update(svc.Name, svc.BasePrice, svc.Description, svc.ServiceUnitID, svc.ServiceCategoryID)
 	return s.repo.Update(ctx, existing)
 }
 

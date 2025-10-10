@@ -35,7 +35,7 @@ func (r *entImpl) Create(ctx *appctx.Context, s *domainPkg.Service) (*domainPkg.
 		SetNillableServiceUnitID(s.ServiceUnitID).
 		SetNillableServiceCategoryID(s.ServiceCategoryID).
 		SetName(s.Name).
-		SetPrice(s.Price).
+		SetBasePrice(s.BasePrice).
 		SetNillableDescription(&s.Description).
 		Save(ctx)
 
@@ -80,7 +80,7 @@ func (r *entImpl) Update(ctx *appctx.Context, s *domainPkg.Service) (*domainPkg.
 	entModel, err := conn.Service.
 		UpdateOneID(s.ID).
 		SetName(s.Name).
-		SetPrice(s.Price).
+		SetBasePrice(s.BasePrice).
 		SetNillableDescription(&s.Description).
 		SetNillableServiceUnitID(s.ServiceUnitID).
 		SetNillableServiceCategoryID(s.ServiceCategoryID).
@@ -126,9 +126,9 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*paginat
 	case query.OrderNameDesc:
 		qb = qb.Order(ent.Desc(service.FieldName))
 	case query.OrderPriceAsc:
-		qb = qb.Order(ent.Asc(service.FieldPrice))
+		qb = qb.Order(ent.Asc(service.FieldBasePrice))
 	case query.OrderPriceDesc:
-		qb = qb.Order(ent.Desc(service.FieldPrice))
+		qb = qb.Order(ent.Desc(service.FieldBasePrice))
 	case query.OrderCreatedAtAsc:
 		qb = qb.Order(ent.Asc(service.FieldCreatedAt))
 	default:

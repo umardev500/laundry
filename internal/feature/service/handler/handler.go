@@ -131,7 +131,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 	// Convert sentinel price -1 to no change.
 	if req.Price == nil {
-		d.Price = -1
+		d.BasePrice = -1
 	}
 
 	res, err := h.service.Update(ctx, d)

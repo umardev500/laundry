@@ -13,7 +13,7 @@ type Service struct {
 	ServiceUnitID     *uuid.UUID
 	ServiceCategoryID *uuid.UUID
 	Name              string
-	Price             float64
+	BasePrice         float64
 	Description       string
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
@@ -27,7 +27,7 @@ func (s *Service) Update(name string, price float64, description string, unitID,
 	}
 	// allow price 0.0 as valid; only update if non-negative (you can adjust rules)
 	if price >= 0 {
-		s.Price = price
+		s.BasePrice = price
 	}
 	if description != "" {
 		s.Description = description

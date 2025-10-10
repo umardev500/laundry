@@ -26,7 +26,7 @@ func (r *CreateServiceRequest) ToDomain(ctx *appctx.Context) *domain.Service {
 		ServiceUnitID:     utils.NilIfUUIDZero(r.ServiceUnitID),
 		ServiceCategoryID: utils.NilIfUUIDZero(r.ServiceCategoryID),
 		Name:              r.Name,
-		Price:             r.Price,
+		BasePrice:         r.Price,
 		Description:       r.Description,
 	}
 }
