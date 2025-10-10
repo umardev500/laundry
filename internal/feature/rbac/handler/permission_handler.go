@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/rbac/contract"
 	"github.com/umardev500/laundry/internal/feature/rbac/domain"
@@ -11,7 +12,6 @@ import (
 	"github.com/umardev500/laundry/internal/feature/rbac/mapper"
 	"github.com/umardev500/laundry/internal/feature/rbac/query"
 	"github.com/umardev500/laundry/pkg/httpx"
-	pkgQuery "github.com/umardev500/laundry/pkg/query"
 	"github.com/umardev500/laundry/pkg/validator"
 )
 
@@ -31,14 +31,9 @@ func NewPermissionHandler(service contract.PermissionService, validator *validat
 
 // 🔍 Get a Permission by ID
 func (h *PermissionHandler) Get(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -59,14 +54,9 @@ func (h *PermissionHandler) Get(c *fiber.Ctx) error {
 
 // ⚙️ Update an existing Permission
 func (h *PermissionHandler) Update(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	var req dto.UpdatePermissionRequest
@@ -131,14 +121,9 @@ func (h *PermissionHandler) UpdateStatus(c *fiber.Ctx) error {
 
 // 🗑️ Soft Delete a Permission
 func (h *PermissionHandler) Delete(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -159,14 +144,9 @@ func (h *PermissionHandler) Delete(c *fiber.Ctx) error {
 
 // 💣 Permanently delete (purge) a Permission
 func (h *PermissionHandler) Purge(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())

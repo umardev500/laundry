@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/rbac/contract"
 	"github.com/umardev500/laundry/internal/feature/rbac/domain"
@@ -11,7 +12,6 @@ import (
 	"github.com/umardev500/laundry/internal/feature/rbac/mapper"
 	"github.com/umardev500/laundry/internal/feature/rbac/query"
 	"github.com/umardev500/laundry/pkg/httpx"
-	pkgQuery "github.com/umardev500/laundry/pkg/query"
 	"github.com/umardev500/laundry/pkg/validator"
 )
 
@@ -61,14 +61,9 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 // 🔍 Get a Role by ID
 func (h *Handler) Get(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -91,14 +86,9 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 // ⚙️ Update an existing Role
 func (h *Handler) Update(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	var req dto.UpdateRoleRequest
@@ -136,14 +126,9 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 // 🗑️ Soft Delete a Role
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -166,14 +151,9 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 // 💣 Permanently delete (purge) a Role
 func (h *Handler) Purge(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())

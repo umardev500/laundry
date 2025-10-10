@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/contract"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/domain"
@@ -75,14 +76,9 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 // 🔍 Get a tenant user by ID
 func (h *Handler) Get(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())

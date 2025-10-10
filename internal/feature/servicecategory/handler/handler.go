@@ -116,12 +116,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	var idQuery queryPkg.GetByIDQuery
-	if err := c.ParamsParser(&idQuery); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := uuid.Parse(idQuery.ID)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return httpx.BadRequest(c, "invalid id")
 	}

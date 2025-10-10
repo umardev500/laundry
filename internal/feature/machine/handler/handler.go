@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/machine/contract"
 	"github.com/umardev500/laundry/internal/feature/machine/domain"
@@ -13,8 +14,6 @@ import (
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/types"
 	"github.com/umardev500/laundry/pkg/validator"
-
-	pkgQuery "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
@@ -56,14 +55,9 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Get(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -82,14 +76,9 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Update(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	var req dto.UpdateMachineRequest
@@ -156,14 +145,9 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
@@ -182,14 +166,9 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Purge(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
