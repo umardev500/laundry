@@ -19,6 +19,7 @@ type ServiceUnit struct {
 func (ServiceUnit) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
+		field.UUID("tenant_id", uuid.UUID{}).Immutable(),
 		field.String("name").NotEmpty().Unique().Comment("Full name of the unit, e.g. 'Per Piece', 'Per Kilogram'"),
 		field.String("symbol").Optional().Comment("Short form like 'pc', 'kg', 'set'"),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -33,5 +34,12 @@ func (ServiceUnit) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),
+
+		edge.From("tenant", Tenant.Type).
+			Ref("service_units").
+			Field("tenant_id").
+			Unique().
+			Required().
+			Immutable(),
 	}
 }
