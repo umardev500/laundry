@@ -9,6 +9,7 @@ import (
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/internal/infra/database/seeder"
 
+	machineSeeder "github.com/umardev500/laundry/internal/feature/machine/seeder"
 	platformUserSeeder "github.com/umardev500/laundry/internal/feature/platformuser/seeder"
 	rbacSeeder "github.com/umardev500/laundry/internal/feature/rbac/seeder"
 	tenantSeeder "github.com/umardev500/laundry/internal/feature/tenant/seeder"
@@ -22,6 +23,7 @@ func NewSeederSet(
 	tenant []tenantSeeder.TenantSeederSet,
 	platformUser []platformUserSeeder.PlatformUserSeederSet,
 	tenantUser []tenantUserSeeder.TenantUserSeederSet,
+	machine []machineSeeder.MachineSeederSet,
 ) []seeder.Seeder {
 	var all []seeder.Seeder
 
@@ -50,6 +52,11 @@ func NewSeederSet(
 		all = append(all, s)
 	}
 
+	// append all machine seeder
+	for _, s := range machine {
+		all = append(all, s)
+	}
+
 	return all
 }
 
@@ -61,6 +68,7 @@ func InitialzeSeeder(cfg *config.Config) ([]seeder.Seeder, error) {
 		tenantSeeder.ProviderSet,
 		platformUserSeeder.ProviderSet,
 		tenantUserSeeder.ProviderSet,
+		machineSeeder.ProviderSet,
 		NewSeederSet,
 	)
 
