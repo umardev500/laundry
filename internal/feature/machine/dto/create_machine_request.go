@@ -25,10 +25,15 @@ func (r *CreateMachineRequest) ToDomain(ctx *appctx.Context) (*domain.Machine, e
 	}
 
 	return &domain.Machine{
-		TenantID:      r.TenantID,
-		MachineTypeID: r.MachineTypeID,
-		Name:          r.Name,
-		Description:   r.Description,
-		Status:        types.MachineStatus(r.Status),
+		TenantID: r.TenantID,
+		MachineTypeID: func() *uuid.UUID {
+			if r.MachineTypeID == uuid.Nil {
+				return nil
+			}
+			return &r.MachineTypeID
+		}(),
+		Name:        r.Name,
+		Description: r.Description,
+		Status:      types.MachineStatus(r.Status),
 	}, nil
 }

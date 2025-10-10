@@ -25,7 +25,7 @@ func (e *entImpl) Create(ctx *appctx.Context, m *domain.Machine) (*domain.Machin
 	entModel, err := conn.Machine.
 		Create().
 		SetTenantID(m.TenantID).
-		SetMachineTypeID(m.MachineTypeID).
+		SetNillableMachineTypeID(m.MachineTypeID).
 		SetName(m.Name).
 		SetDescription(m.Description).
 		SetStatus(machine.Status(m.Status)).

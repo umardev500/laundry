@@ -20,7 +20,7 @@ func (Machine) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("tenant_id", uuid.UUID{}).Immutable(),
-		field.UUID("machine_type_id", uuid.UUID{}),
+		field.UUID("machine_type_id", uuid.UUID{}).Optional().Nillable(),
 		field.String("name").NotEmpty().Unique(),
 		field.String("description").Optional(),
 		field.Enum("status").
@@ -44,7 +44,6 @@ func (Machine) Edges() []ent.Edge {
 		edge.From("machine_type", MachineType.Type).
 			Ref("machines").
 			Field("machine_type_id").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }

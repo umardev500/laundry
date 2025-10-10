@@ -11,7 +11,7 @@ import (
 type Machine struct {
 	ID            uuid.UUID
 	TenantID      uuid.UUID
-	MachineTypeID uuid.UUID
+	MachineTypeID *uuid.UUID
 	Name          string
 	Description   string
 	Status        types.MachineStatus
