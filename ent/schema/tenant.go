@@ -46,5 +46,15 @@ func (Tenant) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
+
+		edge.To("services", Service.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
+
+		edge.To("service_categories", ServiceCategory.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }
