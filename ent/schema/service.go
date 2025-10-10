@@ -48,12 +48,12 @@ func (Service) Edges() []ent.Edge {
 			Required().
 			Immutable(),
 
-		edge.To("service_units", ServiceUnit.Type).
-			Annotations(
-				entsql.OnDelete(entsql.SetNull),
-			),
+		edge.From("unit", ServiceUnit.Type).
+			Ref("services").
+			Field("service_unit_id").
+			Unique(),
 
-		edge.To("order_items", OrderItem.Type).
+		edge.To("items", OrderItem.Type).
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),

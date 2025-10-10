@@ -28,14 +28,14 @@ func (OrderItem) Fields() []ent.Field {
 func (OrderItem) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).
-			Ref("order_items").
+			Ref("items").
 			Field("order_id").
 			Unique().
 			Immutable().
 			Required(),
 
 		edge.From("service", Service.Type).
-			Ref("order_items").
+			Ref("items").
 			Field("service_id").
 			Immutable().
 			Unique().

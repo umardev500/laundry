@@ -22,7 +22,7 @@ func (Order) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("tenant_id", uuid.UUID{}).Immutable(),
 		field.UUID("user_id", uuid.UUID{}).Immutable().Optional().Nillable().
-			Comment("Optinal when user is guest"),
+			Comment("Optional when user is guest"),
 
 		field.Enum("status").
 			Values(
@@ -74,7 +74,7 @@ func (Order) Edges() []ent.Edge {
 			Immutable().
 			Unique(),
 
-		edge.To("order_items", OrderItem.Type).
+		edge.To("items", OrderItem.Type).
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
