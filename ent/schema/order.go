@@ -42,15 +42,13 @@ func (Order) Fields() []ent.Field {
 			Default(string(types.OrderStatusPending)),
 
 		field.Float("total_amount").Default(0.0),
+		field.String("notes").Optional(),
 
 		// Guest info (only if user_id is null)
 		field.String("guest_name").Optional().Nillable(),
 		field.String("guest_email").Optional().Nillable(),
 		field.String("guest_phone").Optional().Nillable(),
 		field.String("guest_address").Optional().Nillable(),
-
-		field.Time("pickup_date").Optional().Nillable(),
-		field.Time("delivery_date").Optional().Nillable(),
 
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

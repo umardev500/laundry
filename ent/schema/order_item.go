@@ -18,9 +18,10 @@ func (OrderItem) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("order_id", uuid.UUID{}).Immutable(),
 		field.UUID("service_id", uuid.UUID{}).Immutable(),
-		field.Int("quantity").Default(1),
-		field.Float("unit_price").Default(0.0),
+		field.Float("quantity").Default(1),
+		field.Float("price").Default(0.0),
 		field.Float("subtotal").Default(0.0),
+		field.Float("total_amount").Default(0.0),
 	}
 }
 

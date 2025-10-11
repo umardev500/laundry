@@ -5,7 +5,7 @@ import (
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/ent/servicecategory"
 	"github.com/umardev500/laundry/internal/app/appctx"
-	domainPkg "github.com/umardev500/laundry/internal/feature/servicecategory/domain"
+	"github.com/umardev500/laundry/internal/feature/servicecategory/domain"
 	"github.com/umardev500/laundry/internal/feature/servicecategory/mapper"
 	"github.com/umardev500/laundry/internal/feature/servicecategory/query"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
@@ -23,7 +23,7 @@ func NewEntRepository(client *entdb.Client) Repository {
 }
 
 // Create inserts a new ServiceCategory.
-func (r *entImpl) Create(ctx *appctx.Context, s *domainPkg.ServiceCategory) (*domainPkg.ServiceCategory, error) {
+func (r *entImpl) Create(ctx *appctx.Context, s *domain.ServiceCategory) (*domain.ServiceCategory, error) {
 	conn := r.client.GetConn(ctx)
 
 	entModel, err := conn.ServiceCategory.
@@ -41,7 +41,7 @@ func (r *entImpl) Create(ctx *appctx.Context, s *domainPkg.ServiceCategory) (*do
 }
 
 // FindByID retrieves a ServiceCategory by ID.
-func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domainPkg.ServiceCategory, error) {
+func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.ServiceCategory, error) {
 	conn := r.client.GetConn(ctx)
 	entModel, err := conn.ServiceCategory.Get(ctx, id)
 	if err != nil {
@@ -51,7 +51,7 @@ func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domainPkg.Servic
 }
 
 // FindByName retrieves a ServiceCategory by name (tenant scoped).
-func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domainPkg.ServiceCategory, error) {
+func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domain.ServiceCategory, error) {
 	conn := r.client.GetConn(ctx)
 	qb := conn.ServiceCategory.Query().Where(servicecategory.NameEQ(name))
 	qb = r.tenantScopedQuery(ctx, qb)
@@ -64,7 +64,7 @@ func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domainPkg.Servi
 }
 
 // Update modifies an existing ServiceCategory.
-func (r *entImpl) Update(ctx *appctx.Context, s *domainPkg.ServiceCategory) (*domainPkg.ServiceCategory, error) {
+func (r *entImpl) Update(ctx *appctx.Context, s *domain.ServiceCategory) (*domain.ServiceCategory, error) {
 	conn := r.client.GetConn(ctx)
 
 	entModel, err := conn.ServiceCategory.
@@ -88,7 +88,7 @@ func (r *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 // List returns paginated results with filtering and ordering.
-func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceCategoryQuery) (*pagination.PageData[domainPkg.ServiceCategory], error) {
+func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceCategoryQuery) (*pagination.PageData[domain.ServiceCategory], error) {
 	q.Normalize()
 
 	conn := r.client.GetConn(ctx)
@@ -126,7 +126,7 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceCategoryQuery) (
 
 	items := mapper.FromEntList(ents)
 
-	return &pagination.PageData[domainPkg.ServiceCategory]{
+	return &pagination.PageData[domain.ServiceCategory]{
 		Data:  items,
 		Total: total,
 	}, nil
