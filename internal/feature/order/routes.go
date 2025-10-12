@@ -21,6 +21,7 @@ func (r *Routes) RegisterRoutes(router fiber.Router) {
 	// Since currently we only have List functionality
 	orders.Get("/", r.handler.List)
 	orders.Post("/guest", r.handler.GuestOrder)
+	orders.Post("/preview", r.handler.Preview)
 
 	// If more handlers like Get, Create, Update, Delete are added later, register here
 	// orders.Get("/:id", r.handler.Get)

@@ -15,4 +15,5 @@ const (
 	OrderStatusCompleted        OrderStatus = "COMPLETED"          // Order closed and payment settled
 	OrderStatusCancelled        OrderStatus = "CANCELLED"          // Order cancelled before pickup
 	OrderStatusFailed           OrderStatus = "FAILED"             // Failed due to error (e.g., payment issue)
+	OrderStatusPreview          OrderStatus = "PREVIEW"            // Order preview before confirmation
 )

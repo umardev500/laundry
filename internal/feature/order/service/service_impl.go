@@ -30,6 +30,51 @@ type orderService struct {
 	paymentMethodService paymentMethodContract.Service
 }
 
+// NewOrderService creates a new OrderService.
+func NewOrderService(
+	repo repository.Repository,
+	service serviceContract.Service,
+	orderItemService orderItemContract.Service,
+	client *entdb.Client,
+	paymentService paymentContract.Service,
+	paymentMethodService paymentMethodContract.Service,
+) contract.OrderService {
+	return &orderService{
+		repo:                 repo,
+		service:              service,
+		orderItemService:     orderItemService,
+		client:               client,
+		paymentService:       paymentService,
+		paymentMethodService: paymentMethodService,
+	}
+}
+
+// Preview implements contract.OrderService.
+// It calculates the total amount and details for an order before payment or creation.
+func (s *orderService) Preview(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
+	// 1️⃣ Get service availability
+	serviceIDs := o.GetServiceIDs()
+	availability, err := s.service.AreItemsAvailable(ctx, serviceIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2️⃣ If some services are not available, return which ones
+	if !availability.AllAvailable() {
+		return nil, domain.NewServiceUnavailableError(availability.UnavailableIDs())
+	}
+
+	// 3️⃣ Place the order temporarily (calculate totals but don’t persist)
+	if err := o.Place(availability.AvailableServices); err != nil {
+		return nil, err
+	}
+
+	// 4️⃣ You can set a default status for the preview
+	o.Status = types.OrderStatusPreview
+
+	return o, nil
+}
+
 // CreatePayment implements contract.OrderService.
 func (s *orderService) CreatePayment(ctx *appctx.Context, o *domain.Order) (*paymentDomain.Payment, error) {
 	pymnt := o.Payment
@@ -73,25 +118,6 @@ func (s *orderService) CreatePayment(ctx *appctx.Context, o *domain.Order) (*pay
 	return payment, nil
 }
 
-// NewOrderService creates a new OrderService.
-func NewOrderService(
-	repo repository.Repository,
-	service serviceContract.Service,
-	orderItemService orderItemContract.Service,
-	client *entdb.Client,
-	paymentService paymentContract.Service,
-	paymentMethodService paymentMethodContract.Service,
-) contract.OrderService {
-	return &orderService{
-		repo:                 repo,
-		service:              service,
-		orderItemService:     orderItemService,
-		client:               client,
-		paymentService:       paymentService,
-		paymentMethodService: paymentMethodService,
-	}
-}
-
 // GuestOrder implements contract.OrderService.
 func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
 	serviceIDs := o.GetServiceIDs()
@@ -108,6 +134,11 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 	o.InitDefaults()
 
 	// Validate the input
+	if err := o.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Validate
 	if err := o.Validate(); err != nil {
 		return nil, err
 	}

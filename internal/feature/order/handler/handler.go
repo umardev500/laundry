@@ -79,3 +79,37 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	return httpx.JSONPaginated(c, int(fiber.StatusOK), dtoPage.Data, httpx.NewPagination(q.Page, q.Limit, result.Total))
 }
+
+func (h *Handler) Preview(c *fiber.Ctx) error {
+	var req dto.PreviewOrderRequest
+	if err := c.BodyParser(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	// Validate
+	if err := req.Validate(); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	ctx := appctx.New(c.UserContext())
+	data, err := req.ToDomain()
+	if err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	result, err := h.service.Preview(ctx, data)
+	if err != nil {
+		switch e := err.(type) {
+		case *domain.ServiceUnavailableError:
+			return httpx.BadRequest(c, e.Error())
+		}
+
+		return httpx.InternalServerError(c, err.Error())
+	}
+
+	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(result))
+}

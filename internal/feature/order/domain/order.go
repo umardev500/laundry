@@ -49,11 +49,6 @@ func (o *Order) Place(availableServices []*serviceDomain.Service) error {
 		return fmt.Errorf("order cannot be nil")
 	}
 
-	// Validate base order data
-	if err := o.Validate(); err != nil {
-		return err
-	}
-
 	// Build look up for service pricing
 	serviceMap := make(map[uuid.UUID]*serviceDomain.Service, len(availableServices))
 	for _, s := range availableServices {

@@ -8,6 +8,7 @@ import (
 
 var (
 	ErrGuestEmailOrPhoneRequired = fmt.Errorf("guest email or phone is required")
+	ErrOrderItemsRequired        = fmt.Errorf("order items are required")
 )
 
 // ServiceUnavailableError is an error that occurs when one or more services are unavailable.

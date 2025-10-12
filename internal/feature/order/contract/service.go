@@ -15,4 +15,5 @@ type OrderService interface {
 	CreatePayment(ctx *appctx.Context, o *domain.Order) (*paymentDomain.Payment, error)
 	GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain.Order, error)
 	List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagination.PageData[domain.Order], error)
+	Preview(ctx *appctx.Context, o *domain.Order) (*domain.Order, error)
 }
