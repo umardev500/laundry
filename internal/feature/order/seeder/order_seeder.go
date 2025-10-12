@@ -24,7 +24,8 @@ func (s *OrderSeeder) Seed(ctx context.Context) error {
 	log.Info().Msg("🌿 Seeding orders...")
 
 	conn := s.client.GetConn(ctx)
-	userID := uuid.MustParse("22222222-1111-1111-1111-111111111111")
+	userID1 := uuid.MustParse("22222222-1111-1111-1111-111111111111")
+	userID2 := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 
 	data := []struct {
 		ID           uuid.UUID
@@ -40,7 +41,7 @@ func (s *OrderSeeder) Seed(ctx context.Context) error {
 		{
 			ID:          uuid.MustParse("aaaaaaaa-1111-1111-1111-aaaaaaaa1111"),
 			TenantID:    uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-			UserID:      utils.NilIfUUIDZero(userID),
+			UserID:      utils.NilIfUUIDZero(userID1),
 			Status:      types.OrderStatusPending,
 			TotalAmount: 25.0,
 		},
@@ -54,6 +55,13 @@ func (s *OrderSeeder) Seed(ctx context.Context) error {
 			GuestEmail:   utils.NilIfZero("jane@example.com", ""),
 			GuestPhone:   utils.NilIfZero("123-456-7890", ""),
 			GuestAddress: utils.NilIfZero("123 Main St", ""),
+		},
+		{
+			ID:          uuid.MustParse("cccccccc-3333-3333-3333-cccccccc3333"),
+			TenantID:    uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+			UserID:      utils.NilIfUUIDZero(userID2),
+			Status:      types.OrderStatusPending,
+			TotalAmount: 25.0,
 		},
 	}
 
