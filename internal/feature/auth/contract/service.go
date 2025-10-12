@@ -7,4 +7,5 @@ import (
 
 type Service interface {
 	Login(ctx *appctx.Context, email string, password string) (*domain.LoginResponse, error)
+	LoginTenant(ctx *appctx.Context, email string, password string) (*domain.LoginResponse, error)
 }

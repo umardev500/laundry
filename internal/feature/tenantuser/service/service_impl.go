@@ -33,6 +33,11 @@ func (s *serviceImpl) Create(ctx *appctx.Context, tu *domain.TenantUser) (*domai
 	return s.repo.Create(ctx, tu)
 }
 
+// GetByUser implements contract.Service.
+func (s *serviceImpl) GetByUser(ctx *appctx.Context, userID uuid.UUID) ([]*domain.TenantUser, error) {
+	return s.repo.FindByUser(ctx, userID)
+}
+
 func (s *serviceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
 	return s.findExistingTenantUser(ctx, id)
 }

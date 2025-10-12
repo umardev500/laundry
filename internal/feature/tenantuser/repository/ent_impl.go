@@ -15,6 +15,8 @@ import (
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/pkg/pagination"
 	"github.com/umardev500/laundry/pkg/types"
+
+	mapper "github.com/umardev500/laundry/internal/feature/tenantuser/mapper"
 )
 
 // tenantUserRepository implements the Repository interface.
@@ -52,6 +54,22 @@ func (r *tenantUserRepository) FindByID(ctx *appctx.Context, id uuid.UUID) (*dom
 		return nil, err
 	}
 	return mapToDomain(entTenantUser), nil
+}
+
+// FindByUser implements Repository.
+func (r *tenantUserRepository) FindByUser(ctx *appctx.Context, userID uuid.UUID) ([]*domain.TenantUser, error) {
+	conn := r.client.GetConn(ctx)
+
+	db := conn.TenantUser.Query()
+	items, err := db.
+		Where(tenantuser.UserIDEQ(userID)).
+		Where(tenantuser.DeletedAtIsNil()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.FromEntModels(items), nil
 }
 
 // FindByUserAndTenant retrieves a TenantUser by user_id and tenant_id.
@@ -121,10 +139,7 @@ func (r *tenantUserRepository) List(ctx *appctx.Context, q *query.ListTenantUser
 		return nil, err
 	}
 
-	results := make([]*domain.TenantUser, len(items))
-	for i, item := range items {
-		results[i] = mapToDomain(item)
-	}
+	results := mapper.FromEntModels(items)
 
 	return pagination.NewPageData(results, total), nil
 }
