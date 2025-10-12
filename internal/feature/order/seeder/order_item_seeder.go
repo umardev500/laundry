@@ -56,6 +56,15 @@ func (s *OrderItemSeeder) Seed(ctx context.Context) error {
 			Subtotal:  15.0,
 			Total:     15.0,
 		},
+		{
+			ID:        uuid.MustParse("44444444-dddd-4444-dddd-444444444444"),
+			OrderID:   uuid.MustParse("dddddddd-4444-4444-4444-dddddddd4444"),
+			ServiceID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+			Quantity:  1,
+			Price:     15.0,
+			Subtotal:  15.0,
+			Total:     15.0,
+		},
 	}
 
 	for _, d := range data {

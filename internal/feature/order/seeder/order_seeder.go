@@ -63,6 +63,13 @@ func (s *OrderSeeder) Seed(ctx context.Context) error {
 			Status:      types.OrderStatusPending,
 			TotalAmount: 25.0,
 		},
+		{
+			ID:          uuid.MustParse("dddddddd-4444-4444-4444-dddddddd4444"),
+			TenantID:    uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			UserID:      utils.NilIfUUIDZero(userID2),
+			Status:      types.OrderStatusPending,
+			TotalAmount: 25.0,
+		},
 	}
 
 	for _, d := range data {

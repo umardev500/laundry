@@ -23,28 +23,46 @@ func NewTenantUserSeeder(client *entdb.Client) *TenantUserSeeder {
 }
 
 func (s *TenantUserSeeder) Seed(ctx context.Context) error {
-	log.Info().Msg("🌿 Seeding tenant user...")
+	log.Info().Msg("🌿 Seeding tenant users...")
 
 	conn := s.client.GetConn(ctx)
 
-	tenantID := uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-	userID := uuid.MustParse("33333333-1111-1111-1111-111111111111")
-
-	err := conn.TenantUser.
-		Create().
-		SetTenantID(tenantID).
-		SetUserID(userID).
-		SetStatus(tenantuser.Status(types.StatusActive)).
-		OnConflict(
-			sql.ConflictColumns(tenantuser.FieldTenantID, tenantuser.FieldUserID),
-		).
-		UpdateNewValues().
-		Exec(ctx)
-
-	if err != nil {
-		return err
+	// Example dataset — you can adjust or expand this as needed.
+	data := []struct {
+		TenantID uuid.UUID
+		UserID   uuid.UUID
+		Status   types.Status
+	}{
+		{
+			TenantID: uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+			UserID:   uuid.MustParse("33333333-1111-1111-1111-111111111111"),
+			Status:   types.StatusActive,
+		},
+		{
+			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			UserID:   uuid.MustParse("22222222-1111-1111-1111-111111111111"),
+			Status:   types.StatusActive,
+		},
 	}
 
-	log.Info().Msg("✅ Tenant user seeded successfully.")
+	for _, d := range data {
+		err := conn.TenantUser.
+			Create().
+			SetTenantID(d.TenantID).
+			SetUserID(d.UserID).
+			SetStatus(tenantuser.Status(d.Status)).
+			OnConflict(
+				sql.ConflictColumns(tenantuser.FieldTenantID, tenantuser.FieldUserID),
+			).
+			UpdateNewValues().
+			Exec(ctx)
+
+		if err != nil {
+			log.Error().Err(err).Msgf("❌ Failed to seed tenant user for tenant %s and user %s", d.TenantID, d.UserID)
+			return err
+		}
+	}
+
+	log.Info().Msg("✅ Tenant users seeded successfully.")
 	return nil
 }
