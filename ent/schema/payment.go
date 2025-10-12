@@ -19,11 +19,16 @@ type Payment struct {
 func (Payment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
+		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable(),
 		field.UUID("ref_id", uuid.UUID{}).Immutable(),
 		field.Enum("ref_type").
-			Values(string(types.PaymentTypeOrder), string(types.PaymentTypeSubscription)),
+			Values(string(types.PaymentTypeOrder), string(types.PaymentTypeSubscription)).Immutable(),
 		field.UUID("payment_method_id", uuid.UUID{}).Optional(),
 		field.Float("amount").Default(0.0),
+		field.Float("received_amount").Default(0.0).Optional().
+			Comment("Used for cash payments"),
+		field.Float("change_amount").Default(0.0).Optional().
+			Comment("Used for cash payments"),
 		field.String("notes").Optional(),
 		field.Enum("status").
 			Values(
@@ -51,5 +56,11 @@ func (Payment) Edges() []ent.Edge {
 		edge.From("order", Order.Type).
 			Ref("payments").
 			Unique(),
+
+		edge.From("tenant", Tenant.Type).
+			Ref("payments").
+			Field("tenant_id").
+			Unique().
+			Immutable(),
 	}
 }

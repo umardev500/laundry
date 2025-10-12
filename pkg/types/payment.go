@@ -1,5 +1,7 @@
 package types
 
+import "errors"
+
 // PaymentType is the type of payment
 type PaymentType string
 
@@ -23,4 +25,12 @@ const (
 	PaymentStatusPending PaymentStatus = "pending"
 	PaymentStatusPaid    PaymentStatus = "paid"
 	PaymentStatusFailed  PaymentStatus = "failed"
+)
+
+var (
+	ErrInvalidPaymentType   = errors.New("invalid payment type")
+	ErrInvalidPaymentStatus = errors.New("invalid payment status")
+	ErrAlreadyPaid          = errors.New("payment is already paid")
+	ErrOnlyPendingPayments  = errors.New("only pending payments can be marked as paid")
+	ErrInsufficientPayment  = errors.New("insufficient payment")
 )

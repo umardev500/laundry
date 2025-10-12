@@ -66,5 +66,10 @@ func (Tenant) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Cascade),
 			),
+
+		edge.To("payments", Payment.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }
