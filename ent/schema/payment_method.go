@@ -20,7 +20,7 @@ func (PaymentMethod) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.String("name").NotEmpty().Unique(),
-		field.String("description").Optional(),
+		field.String("description").Optional().Nillable(),
 
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

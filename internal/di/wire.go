@@ -14,6 +14,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/machinetype"
 	"github.com/umardev500/laundry/internal/feature/order"
 	"github.com/umardev500/laundry/internal/feature/orderitem"
+	"github.com/umardev500/laundry/internal/feature/payment"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod"
 	"github.com/umardev500/laundry/internal/feature/platformuser"
 	"github.com/umardev500/laundry/internal/feature/rbac"
 	"github.com/umardev500/laundry/internal/feature/service"
@@ -44,6 +46,8 @@ var AppSet = wire.NewSet(
 	service.ProviderSet,
 	servicecategory.ProviderSet,
 	orderitem.ProviderSet,
+	payment.ProviderSet,
+	paymentmethod.ProviderSet,
 	order.ProviderSet,
 	validator.New,
 	newRegistrars,
@@ -67,6 +71,7 @@ func newRegistrars(
 	serviceReg *service.Routes,
 	serviceCategoryReg *servicecategory.Routes,
 	orderReg *order.Routes,
+	paymentMethodReg *paymentmethod.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
@@ -82,5 +87,6 @@ func newRegistrars(
 		serviceReg,
 		serviceCategoryReg,
 		orderReg,
+		paymentMethodReg,
 	}
 }

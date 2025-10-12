@@ -14,8 +14,6 @@ import (
 	"github.com/umardev500/laundry/internal/feature/servicecategory/query"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/validator"
-
-	queryPkg "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
@@ -138,12 +136,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Purge(c *fiber.Ctx) error {
-	var idQuery queryPkg.GetByIDQuery
-	if err := c.ParamsParser(&idQuery); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := idQuery.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return httpx.BadRequest(c, "invalid id")
 	}

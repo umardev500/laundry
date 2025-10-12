@@ -7,11 +7,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/umardev500/laundry/internal/app/appctx"
-	"github.com/umardev500/laundry/internal/feature/service/contract"
-	"github.com/umardev500/laundry/internal/feature/service/domain"
-	"github.com/umardev500/laundry/internal/feature/service/dto"
-	"github.com/umardev500/laundry/internal/feature/service/mapper"
-	"github.com/umardev500/laundry/internal/feature/service/query"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod/contract"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod/domain"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod/dto"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod/mapper"
+	"github.com/umardev500/laundry/internal/feature/paymentmethod/query"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/validator"
 )
@@ -28,10 +28,9 @@ func NewHandler(s contract.Service, v *validator.Validator) *Handler {
 	}
 }
 
-// Create POST /api/services
+// Create POST /api/payment-methods
 func (h *Handler) Create(c *fiber.Ctx) error {
-	var req dto.CreateServiceRequest
-
+	var req dto.CreatePaymentMethodRequest
 	if err := c.BodyParser(&req); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -41,12 +40,12 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	}
 
 	ctx := appctx.New(c.UserContext())
-	d := req.ToDomain(ctx)
+	pm := req.ToDomain()
 
-	res, err := h.service.Create(ctx, d)
+	res, err := h.service.Create(ctx, pm)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrServiceAlreadyExists):
+		case errors.Is(err, domain.ErrPaymentMethodAlreadyExists):
 			return httpx.Conflict(c, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
@@ -56,10 +55,9 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(res))
 }
 
-// List GET /api/services
+// List GET /api/payment-methods
 func (h *Handler) List(c *fiber.Ctx) error {
-	var q query.ListServiceQuery
-
+	var q query.ListPaymentMethodQuery
 	if err := c.QueryParser(&q); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -72,10 +70,11 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		return httpx.InternalServerError(c, err.Error())
 	}
 
-	return httpx.JSONPaginated(c, fiber.StatusOK, mapper.ToResponsePage(page).Data, httpx.NewPagination(q.Page, q.Limit, page.Total))
+	return httpx.JSONPaginated(c, fiber.StatusOK, mapper.ToResponseList(page.Data),
+		httpx.NewPagination(q.Page, q.Limit, page.Total))
 }
 
-// Get GET /api/services/:id
+// Get GET /api/payment-methods/:id
 func (h *Handler) Get(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -83,30 +82,29 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	}
 
 	ctx := appctx.New(c.UserContext())
-
-	res, err := h.service.GetByID(ctx, id)
+	pm, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
+		case errors.Is(err, domain.ErrPaymentMethodNotFound):
 			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
+		case errors.Is(err, domain.ErrPaymentMethodDeleted):
 			return httpx.Forbidden(c, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
 		}
 	}
 
-	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
+	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(pm))
 }
 
-// Update PUT /api/services/:id
+// Update PUT /api/payment-methods/:id
 func (h *Handler) Update(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return httpx.BadRequest(c, "invalid id")
 	}
 
-	var req dto.UpdateServiceRequest
+	var req dto.UpdatePaymentMethodRequest
 	if err := c.BodyParser(&req); err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -116,19 +114,14 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 	}
 
 	ctx := appctx.New(c.UserContext())
-	d := req.ToDomain(id)
+	pm := req.ToDomain(id)
 
-	// Convert sentinel price -1 to no change.
-	if req.Price == nil {
-		d.BasePrice = -1
-	}
-
-	res, err := h.service.Update(ctx, d)
+	res, err := h.service.Update(ctx, pm)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
+		case errors.Is(err, domain.ErrPaymentMethodNotFound):
 			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
+		case errors.Is(err, domain.ErrPaymentMethodDeleted):
 			return httpx.Forbidden(c, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
@@ -138,7 +131,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
 }
 
-// Delete DELETE /api/services/:id (soft delete)
+// Delete DELETE /api/payment-methods/:id (soft delete)
 func (h *Handler) Delete(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -146,12 +139,11 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	}
 
 	ctx := appctx.New(c.UserContext())
-
 	if err := h.service.Delete(ctx, id); err != nil {
 		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
+		case errors.Is(err, domain.ErrPaymentMethodNotFound):
 			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
+		case errors.Is(err, domain.ErrPaymentMethodDeleted):
 			return httpx.Forbidden(c, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
@@ -161,7 +153,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	return httpx.NoContent(c)
 }
 
-// Purge DELETE /api/services/:id/purge (hard delete)
+// Purge DELETE /api/payment-methods/:id/purge (hard delete)
 func (h *Handler) Purge(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -169,10 +161,9 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	}
 
 	ctx := appctx.New(c.UserContext())
-
 	if err := h.service.Purge(ctx, id); err != nil {
 		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
+		case errors.Is(err, domain.ErrPaymentMethodNotFound):
 			return httpx.NotFound(c, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
