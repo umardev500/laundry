@@ -17,7 +17,7 @@ type EntPaymentRepository struct {
 }
 
 // NewEntPaymentRepository creates a new repository instance
-func NewEntPaymentRepository(client *entdb.Client) *EntPaymentRepository {
+func NewEntPaymentRepository(client *entdb.Client) Repository {
 	return &EntPaymentRepository{
 		client: client,
 	}
@@ -27,7 +27,6 @@ func NewEntPaymentRepository(client *entdb.Client) *EntPaymentRepository {
 func (r *EntPaymentRepository) Create(ctx *appctx.Context, p *domain.Payment) (*domain.Payment, error) {
 	entPayment, err := r.client.Client.Payment.
 		Create().
-		SetID(p.ID).
 		SetRefID(p.RefID).
 		SetRefType(payment.RefType(p.RefType)).
 		SetPaymentMethodID(p.PaymentMethodID).

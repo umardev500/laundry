@@ -6,6 +6,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/order/dto"
 	"github.com/umardev500/laundry/pkg/pagination"
 	"github.com/umardev500/laundry/pkg/types"
+
+	paymentMapper "github.com/umardev500/laundry/internal/feature/payment/mapper"
 )
 
 // FromEnt converts an Ent Order model to a domain Order.
@@ -66,6 +68,7 @@ func ToResponse(d *domain.Order) *dto.OrderResponse {
 		UpdatedAt:    d.UpdatedAt,
 		DeletedAt:    d.DeletedAt,
 		Items:        ToItemResponseList(d.Items),
+		Payment:      paymentMapper.ToResponse(d.Payment),
 	}
 }
 

@@ -5,6 +5,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/order/domain"
 
 	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
+	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
+	paymentDto "github.com/umardev500/laundry/internal/feature/payment/dto"
 )
 
 type CreateGuestOrderRequest struct {
@@ -15,6 +17,8 @@ type CreateGuestOrderRequest struct {
 	Notes   *string `json:"notes,omitempty" validate:"omitempty,max=255"`
 
 	Items []CreateOrderItemRequest `json:"items" validate:"required,min=1"`
+
+	Payment *paymentDto.CreatePaymentRequest `json:"payment" validate:"required"`
 }
 
 func (r *CreateGuestOrderRequest) Validate() error {
@@ -42,5 +46,10 @@ func (r *CreateGuestOrderRequest) ToDomain(tenantID uuid.UUID) (*domain.Order, e
 		GuestPhone:   r.Phone,
 		GuestAddress: &r.Address,
 		Items:        items,
+		Payment: &paymentDomain.Payment{
+			PaymentMethodID: r.Payment.PaymentMethodID,
+			ReceivedAmount:  r.Payment.ReceivedAmount,
+			Notes:           *r.Payment.Notes,
+		},
 	}, nil
 }

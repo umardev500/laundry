@@ -8,6 +8,7 @@ import (
 	"github.com/umardev500/laundry/pkg/types"
 
 	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
+	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
 	serviceDomain "github.com/umardev500/laundry/internal/feature/service/domain"
 )
 
@@ -26,6 +27,8 @@ type Order struct {
 	UpdatedAt    time.Time
 	DeletedAt    *time.Time
 	Items        []*orderItemDomain.OrderItem
+
+	Payment *paymentDomain.Payment
 }
 
 // AttachOrderID assigns the given order ID to all order items.

@@ -54,7 +54,7 @@ func (Payment) Edges() []ent.Edge {
 			Unique(),
 
 		edge.From("order", Order.Type).
-			Ref("payments").
+			Ref("payment").
 			Unique(),
 
 		edge.From("tenant", Tenant.Type).

@@ -35,7 +35,5 @@ func (s *orderItemService) Create(ctx *appctx.Context, items []*domain.OrderItem
 		item.CalculateTotals()
 	}
 
-	fmt.Println(items)
-
 	return s.repo.Create(ctx, items)
 }

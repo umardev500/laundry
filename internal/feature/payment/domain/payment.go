@@ -44,20 +44,64 @@ func (p *Payment) Create() {
 // -------------------------
 
 func (p *Payment) Validate() error {
+	// Validate UUIDs
+	if p.RefID == uuid.Nil {
+		return types.ErrInvalidUUID
+	}
+	if p.PaymentMethodID == uuid.Nil {
+		return types.ErrInvalidUUID
+	}
+	// if p.TenantID != nil && *p.TenantID == uuid.Nil {
+	// 	return ErrInconsistentTenantID
+	// }
+
+	// Validate type
 	if p.RefType != types.PaymentTypeOrder && p.RefType != types.PaymentTypeSubscription {
-		return types.ErrInvalidPaymentType
+		return ErrInvalidPaymentType
 	}
 
-	if p.Status != types.PaymentStatusPending &&
-		p.Status != types.PaymentStatusPaid &&
-		p.Status != types.PaymentStatusFailed {
-		return types.ErrInvalidPaymentStatus
+	// Validate amount
+	if p.Amount <= 0 {
+		return ErrInvalidAmount
 	}
 
+	// Validate received and change
+	if p.ReceivedAmount != nil {
+		if *p.ReceivedAmount < 0 {
+			return ErrInvalidReceivedAmount
+		}
+		if *p.ReceivedAmount < p.Amount {
+			return ErrReceivedAmountLessThanDue
+		}
+
+		// Change must be correct if present
+		if p.ChangeAmount != nil {
+			expectedChange := *p.ReceivedAmount - p.Amount
+			if *p.ChangeAmount != expectedChange {
+				return ErrInvalidChangeAmount
+			}
+		}
+	}
+
+	// Validate status
+	validStatuses := map[types.PaymentStatus]bool{
+		types.PaymentStatusPending: true,
+		types.PaymentStatusPaid:    true,
+		types.PaymentStatusFailed:  true,
+	}
+	if !validStatuses[p.Status] {
+		return ErrInvalidPaymentStatus
+	}
+
+	// Validate paid_at consistency
 	if p.PaidAt != nil && p.Status != types.PaymentStatusPaid {
-		return types.ErrInvalidPaymentStatus
+		return ErrPaidAtWithoutPaidStatus
+	}
+	if p.PaidAt == nil && p.Status == types.PaymentStatusPaid {
+		return ErrPaidStatusWithoutPaidAt
 	}
 
+	// OK ✅
 	return nil
 }
 
@@ -67,11 +111,11 @@ func (p *Payment) Validate() error {
 
 func (p *Payment) CompleteCashPayment(received float64) error {
 	if p.Status != types.PaymentStatusPending {
-		return types.ErrOnlyPendingPayments
+		return ErrOnlyPendingPayments
 	}
 
 	if received < p.Amount {
-		return types.ErrInsufficientPayment
+		return ErrInsufficientPayment
 	}
 
 	now := time.Now()

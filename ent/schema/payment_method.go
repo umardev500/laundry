@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // PaymentMethod holds the schema definition for the PaymentMethod entity.
@@ -21,6 +22,8 @@ func (PaymentMethod) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.String("name").NotEmpty().Unique(),
 		field.String("description").Optional().Nillable(),
+		field.Enum("type").
+			Values(string(types.PaymentMethodCash), string(types.PaymentMethodCard), string(types.PaymentMethodTransfer)),
 
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

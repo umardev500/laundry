@@ -33,6 +33,7 @@ func (r *entImpl) Create(ctx *appctx.Context, pm *domain.PaymentMethod) (*domain
 		Create().
 		SetName(pm.Name).
 		SetNillableDescription(pm.Description).
+		SetType(paymentmethod.Type(pm.Type)).
 		SetCreatedAt(pm.CreatedAt).
 		SetUpdatedAt(pm.UpdatedAt).
 		Save(ctx)
@@ -78,6 +79,7 @@ func (r *entImpl) Update(ctx *appctx.Context, pm *domain.PaymentMethod) (*domain
 		UpdateOneID(pm.ID).
 		SetName(pm.Name).
 		SetNillableDescription(pm.Description).
+		SetType(paymentmethod.Type(pm.Type)).
 		SetNillableDeletedAt(pm.DeletedAt).
 		SetUpdatedAt(pm.UpdatedAt).
 		Save(ctx)

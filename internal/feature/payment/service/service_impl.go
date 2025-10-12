@@ -9,23 +9,33 @@ import (
 	"github.com/umardev500/laundry/internal/feature/payment/contract"
 	"github.com/umardev500/laundry/internal/feature/payment/domain"
 	"github.com/umardev500/laundry/internal/feature/payment/repository"
+
+	paymentMethodContract "github.com/umardev500/laundry/internal/feature/paymentmethod/contract"
 )
 
 // PaymentServiceImpl implements PaymentService
 type PaymentServiceImpl struct {
-	repo repository.Repository
+	repo                 repository.Repository
+	paymentMethodService paymentMethodContract.Service
 }
 
 // NewPaymentService creates a new PaymentService
-func NewPaymentService(repo repository.Repository) contract.PaymentService {
+func NewPaymentService(repo repository.Repository, paymentMethodService paymentMethodContract.Service) contract.Service {
 	return &PaymentServiceImpl{
-		repo: repo,
+		repo:                 repo,
+		paymentMethodService: paymentMethodService,
 	}
 }
 
 // Create a new payment
 func (s *PaymentServiceImpl) Create(ctx *appctx.Context, p *domain.Payment) (*domain.Payment, error) {
 	if err := p.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Check for payment method
+	_, err := s.paymentMethodService.GetByID(ctx, p.PaymentMethodID)
+	if err != nil {
 		return nil, err
 	}
 

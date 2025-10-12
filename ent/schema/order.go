@@ -77,7 +77,8 @@ func (Order) Edges() []ent.Edge {
 				entsql.OnDelete(entsql.Cascade),
 			),
 
-		edge.To("payments", Payment.Type).
+		edge.To("payment", Payment.Type).
+			Unique().
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 			),

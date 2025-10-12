@@ -6,8 +6,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/payment/domain"
 )
 
-// PaymentService defines the business logic for payments.
-type PaymentService interface {
+// Service defines the business logic for payments.
+type Service interface {
 	// Create a new payment
 	Create(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error)
 

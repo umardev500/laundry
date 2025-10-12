@@ -41,7 +41,7 @@ func (s *serviceImpl) Update(ctx *appctx.Context, pm *domain.PaymentMethod) (*do
 		return nil, err
 	}
 
-	existing.Update(pm.Name, pm.Description)
+	existing.Update(pm.Name, pm.Type, pm.Description)
 	return s.repo.Update(ctx, existing)
 }
 
