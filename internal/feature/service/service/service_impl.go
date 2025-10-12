@@ -21,6 +21,15 @@ func NewService(repo repository.Repository) contract.Service {
 	}
 }
 
+// AreItemsAvailable returns a map of service ids to availability.
+func (s *serviceImpl) AreItemsAvailable(ctx *appctx.Context, ids []uuid.UUID) (*domain.AvailabilityResult, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	return s.repo.AreItemsAvailable(ctx, ids)
+}
+
 // Create adds a new service.
 func (s *serviceImpl) Create(ctx *appctx.Context, svc *domain.Service) (*domain.Service, error) {
 	existing, err := s.repo.FindByName(ctx, svc.Name)

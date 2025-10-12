@@ -21,6 +21,28 @@ func NewEntRepository(client *entdb.Client) Repository {
 	return &entImpl{client: client}
 }
 
+// Create implements Repository.
+func (r *entImpl) Create(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
+	conn := r.client.GetConn(ctx)
+
+	builder := conn.Order.Create().
+		SetTenantID(o.TenantID).
+		SetNillableNotes(o.Notes).
+		SetStatus(order.Status(o.Status)).
+		SetTotalAmount(o.TotalAmount).
+		SetNillableGuestName(o.GuestName).
+		SetNillableGuestEmail(o.GuestEmail).
+		SetNillableGuestPhone(o.GuestPhone).
+		SetNillableGuestAddress(o.GuestAddress)
+
+	orderObj, err := builder.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.FromEnt(orderObj), err
+}
+
 // List returns paginated orders with filtering and ordering.
 func (r *entImpl) List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagination.PageData[domain.Order], error) {
 	q.Normalize()

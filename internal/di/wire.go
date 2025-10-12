@@ -13,6 +13,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/machine"
 	"github.com/umardev500/laundry/internal/feature/machinetype"
 	"github.com/umardev500/laundry/internal/feature/order"
+	"github.com/umardev500/laundry/internal/feature/orderitem"
 	"github.com/umardev500/laundry/internal/feature/platformuser"
 	"github.com/umardev500/laundry/internal/feature/rbac"
 	"github.com/umardev500/laundry/internal/feature/service"
@@ -42,6 +43,7 @@ var AppSet = wire.NewSet(
 	serviceunit.ProviderSet,
 	service.ProviderSet,
 	servicecategory.ProviderSet,
+	orderitem.ProviderSet,
 	order.ProviderSet,
 	validator.New,
 	newRegistrars,

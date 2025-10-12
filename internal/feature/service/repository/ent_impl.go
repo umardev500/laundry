@@ -6,7 +6,7 @@ import (
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/ent/service"
 	"github.com/umardev500/laundry/internal/app/appctx"
-	domainPkg "github.com/umardev500/laundry/internal/feature/service/domain"
+	"github.com/umardev500/laundry/internal/feature/service/domain"
 	"github.com/umardev500/laundry/internal/feature/service/mapper"
 	"github.com/umardev500/laundry/internal/feature/service/query"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
@@ -25,8 +25,25 @@ func NewEntRepository(client *entdb.Client) Repository {
 	}
 }
 
+func (r *entImpl) AreItemsAvailable(ctx *appctx.Context, ids []uuid.UUID) (*domain.AvailabilityResult, error) {
+	conn := r.client.GetConn(ctx)
+	services, err := conn.Service.
+		Query().
+		Where(service.IDIn(ids...)).
+		All(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.AvailabilityResult{
+		RequestedIDs:      ids,
+		AvailableServices: mapper.FromEntList(services),
+	}, nil
+}
+
 // Create inserts a new service record.
-func (r *entImpl) Create(ctx *appctx.Context, s *domainPkg.Service) (*domainPkg.Service, error) {
+func (r *entImpl) Create(ctx *appctx.Context, s *domain.Service) (*domain.Service, error) {
 	conn := r.client.GetConn(ctx)
 
 	entModel, err := conn.Service.
@@ -47,7 +64,7 @@ func (r *entImpl) Create(ctx *appctx.Context, s *domainPkg.Service) (*domainPkg.
 }
 
 // FindByID retrieves a service by its UUID.
-func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domainPkg.Service, error) {
+func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.Service, error) {
 	conn := r.client.GetConn(ctx)
 
 	entModel, err := conn.Service.Get(ctx, id)
@@ -59,7 +76,7 @@ func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domainPkg.Servic
 }
 
 // FindByName retrieves a service by name within tenant scope.
-func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domainPkg.Service, error) {
+func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domain.Service, error) {
 	conn := r.client.GetConn(ctx)
 
 	qb := conn.Service.Query().Where(service.NameEQ(name))
@@ -74,7 +91,7 @@ func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domainPkg.Servi
 }
 
 // Update modifies an existing service record.
-func (r *entImpl) Update(ctx *appctx.Context, s *domainPkg.Service) (*domainPkg.Service, error) {
+func (r *entImpl) Update(ctx *appctx.Context, s *domain.Service) (*domain.Service, error) {
 	conn := r.client.GetConn(ctx)
 
 	entModel, err := conn.Service.
@@ -100,7 +117,7 @@ func (r *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 // List retrieves paginated services with filtering, ordering and tenant scoping.
-func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*pagination.PageData[domainPkg.Service], error) {
+func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*pagination.PageData[domain.Service], error) {
 	q.Normalize()
 
 	conn := r.client.GetConn(ctx)
@@ -150,7 +167,7 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*paginat
 
 	items := mapper.FromEntList(ents)
 
-	return &pagination.PageData[domainPkg.Service]{
+	return &pagination.PageData[domain.Service]{
 		Data:  items,
 		Total: total,
 	}, nil

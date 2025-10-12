@@ -3,6 +3,8 @@ package dto
 import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/feature/order/domain"
+
+	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
 )
 
 type CreateGuestOrderRequest struct {
@@ -10,6 +12,7 @@ type CreateGuestOrderRequest struct {
 	Email   *string `json:"email,omitempty" validate:"omitempty,email"`
 	Phone   *string `json:"phone,omitempty" validate:"omitempty,e164"`
 	Address string  `json:"address" validate:"required,min=5,max=200"`
+	Notes   *string `json:"notes,omitempty" validate:"omitempty,max=255"`
 
 	Items []CreateOrderItemRequest `json:"items" validate:"required,min=1"`
 }
@@ -23,7 +26,7 @@ func (r *CreateGuestOrderRequest) Validate() error {
 }
 
 func (r *CreateGuestOrderRequest) ToDomain(tenantID uuid.UUID) (*domain.Order, error) {
-	var items []*domain.OrderItem
+	var items []*orderItemDomain.OrderItem
 	for _, i := range r.Items {
 		item, err := i.ToDomain()
 		if err != nil {

@@ -16,4 +16,6 @@ type Service interface {
 	Update(ctx *appctx.Context, s *domain.Service) (*domain.Service, error)
 	Delete(ctx *appctx.Context, id uuid.UUID) error
 	Purge(ctx *appctx.Context, id uuid.UUID) error
+
+	AreItemsAvailable(ctx *appctx.Context, ids []uuid.UUID) (*domain.AvailabilityResult, error)
 }

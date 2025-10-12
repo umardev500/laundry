@@ -10,5 +10,6 @@ import (
 // OrderService defines the business logic for orders.
 // For now, we only expose the List method.
 type OrderService interface {
+	GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain.Order, error)
 	List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagination.PageData[domain.Order], error)
 }

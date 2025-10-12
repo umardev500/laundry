@@ -2,8 +2,10 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/order/contract"
+	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/dto"
 	"github.com/umardev500/laundry/internal/feature/order/mapper"
 	"github.com/umardev500/laundry/internal/feature/order/query"
@@ -33,7 +35,28 @@ func (h *Handler) GuestOrder(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
-	return c.JSON(req)
+	// Validate
+	if err := req.Validate(); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	ctx := appctx.New(c.UserContext())
+	data, err := req.ToDomain(uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+	if err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	result, err := h.service.GuestOrder(ctx, data)
+	if err != nil {
+		switch e := err.(type) {
+		case *domain.ServiceUnavailableError:
+			return httpx.BadRequest(c, e.Error())
+		}
+
+		return httpx.InternalServerError(c, err.Error())
+	}
+
+	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(result))
 }
 
 // List handles GET /orders requests with filtering, sorting, and pagination

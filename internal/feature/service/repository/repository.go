@@ -15,4 +15,5 @@ type Repository interface {
 	Update(ctx *appctx.Context, s *domain.Service) (*domain.Service, error)
 	Delete(ctx *appctx.Context, id uuid.UUID) error
 	List(ctx *appctx.Context, q *query.ListServiceQuery) (*pagination.PageData[domain.Service], error)
+	AreItemsAvailable(ctx *appctx.Context, ids []uuid.UUID) (*domain.AvailabilityResult, error)
 }

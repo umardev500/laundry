@@ -2,18 +2,19 @@ package mapper
 
 import (
 	"github.com/umardev500/laundry/ent"
-	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/dto"
 	"github.com/umardev500/laundry/pkg/pagination"
+
+	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
 )
 
 // FromEntItem converts an Ent OrderItem to a domain OrderItem.
-func FromEntItem(e *ent.OrderItem) *domain.OrderItem {
+func FromEntItem(e *ent.OrderItem) *orderItemDomain.OrderItem {
 	if e == nil {
 		return nil
 	}
 
-	return &domain.OrderItem{
+	return &orderItemDomain.OrderItem{
 		ID:          e.ID,
 		OrderID:     e.OrderID,
 		ServiceID:   e.ServiceID,
@@ -25,8 +26,8 @@ func FromEntItem(e *ent.OrderItem) *domain.OrderItem {
 }
 
 // FromEntItemList converts a list of Ent OrderItems to domain OrderItems.
-func FromEntItemList(ents []*ent.OrderItem) []*domain.OrderItem {
-	items := make([]*domain.OrderItem, len(ents))
+func FromEntItemList(ents []*ent.OrderItem) []*orderItemDomain.OrderItem {
+	items := make([]*orderItemDomain.OrderItem, len(ents))
 	for i, e := range ents {
 		items[i] = FromEntItem(e)
 	}
@@ -34,7 +35,7 @@ func FromEntItemList(ents []*ent.OrderItem) []*domain.OrderItem {
 }
 
 // ToItemResponse converts a domain OrderItem to a response DTO.
-func ToItemResponse(d *domain.OrderItem) *dto.OrderItemResponse {
+func ToItemResponse(d *orderItemDomain.OrderItem) *dto.OrderItemResponse {
 	if d == nil {
 		return nil
 	}
@@ -50,7 +51,7 @@ func ToItemResponse(d *domain.OrderItem) *dto.OrderItemResponse {
 }
 
 // ToItemResponseList converts a list of domain OrderItems to response DTOs.
-func ToItemResponseList(items []*domain.OrderItem) []*dto.OrderItemResponse {
+func ToItemResponseList(items []*orderItemDomain.OrderItem) []*dto.OrderItemResponse {
 	res := make([]*dto.OrderItemResponse, len(items))
 	for i, d := range items {
 		res[i] = ToItemResponse(d)
@@ -58,8 +59,8 @@ func ToItemResponseList(items []*domain.OrderItem) []*dto.OrderItemResponse {
 	return res
 }
 
-// ToItemResponsePage converts paginated domain.OrderItems to paginated DTOs.
-func ToItemResponsePage(data *pagination.PageData[domain.OrderItem]) *pagination.PageData[dto.OrderItemResponse] {
+// ToItemResponsePage converts paginated orderItemDomain.OrderItems to paginated DTOs.
+func ToItemResponsePage(data *pagination.PageData[orderItemDomain.OrderItem]) *pagination.PageData[dto.OrderItemResponse] {
 	if data == nil || len(data.Data) == 0 {
 		return &pagination.PageData[dto.OrderItemResponse]{
 			Data:  []*dto.OrderItemResponse{},
