@@ -47,6 +47,11 @@ func (s *UserSeeder) Seed(ctx context.Context) error {
 			Email:    "operator@example.com",
 			Password: "Operator123!",
 		},
+		{
+			ID:       uuid.MustParse("44444444-1111-1111-1111-111111111111"),
+			Email:    "user@example.com",
+			Password: "User123!",
+		},
 	}
 
 	for _, u := range users {

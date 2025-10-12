@@ -74,9 +74,23 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 			default:
 				return httpx.InternalServerError(c, err.Error())
 			}
+
 		}
 	}
 	if query.Scope == appctx.ScopeAdmin {
+		result, err = h.service.LoginAdmin(ctx, req.Email, req.Password)
+		if err != nil {
+			switch {
+			case errors.Is(err, domain.ErrInvalidCredentials):
+				return httpx.Unauthorized(c, err.Error())
+			default:
+				return httpx.InternalServerError(c, err.Error())
+			}
+		}
+	}
+
+	if result == nil {
+		return httpx.Unauthorized(c, "invalid credentials")
 	}
 
 	// Map domain to DTO

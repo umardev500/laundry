@@ -16,15 +16,17 @@ import (
 	"github.com/umardev500/laundry/internal/feature/auth/repository"
 	"github.com/umardev500/laundry/pkg/security"
 
+	platformUserContract "github.com/umardev500/laundry/internal/feature/platformuser/contract"
 	tenantUserContract "github.com/umardev500/laundry/internal/feature/tenantuser/contract"
 	userContract "github.com/umardev500/laundry/internal/feature/user/contract"
 )
 
 type serviceImpl struct {
-	config            *config.Config
-	userService       userContract.Service
-	refreshTokenRepo  repository.RefreshTokenRepository
-	tenantUserService tenantUserContract.Service
+	config              *config.Config
+	userService         userContract.Service
+	refreshTokenRepo    repository.RefreshTokenRepository
+	tenantUserService   tenantUserContract.Service
+	platformUserService platformUserContract.Service
 }
 
 func NewService(
@@ -32,13 +34,77 @@ func NewService(
 	userService userContract.Service,
 	refreshTokenRepo repository.RefreshTokenRepository,
 	tenantService tenantUserContract.Service,
+	platformUserService platformUserContract.Service,
 ) contract.Service {
 	return &serviceImpl{
-		config:            cfg,
-		userService:       userService,
-		refreshTokenRepo:  refreshTokenRepo,
-		tenantUserService: tenantService,
+		config:              cfg,
+		userService:         userService,
+		refreshTokenRepo:    refreshTokenRepo,
+		tenantUserService:   tenantService,
+		platformUserService: platformUserService,
 	}
+}
+
+func (s *serviceImpl) LoginAdmin(ctx *appctx.Context, email, password string) (*domain.LoginResponse, error) {
+	email = normalizeEmail(email)
+
+	user, err := s.userService.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	if !security.Compare(user.Password, password) {
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	// Get platform user
+	pu, err := s.platformUserService.GetByUserID(ctx, user.ID)
+	if err != nil {
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	if pu == nil {
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	fmt.Println(pu)
+
+	// Build JWT claims
+	now := time.Now().UTC()
+	jwtCfg := s.config.JWT
+	exp := now.Add(time.Duration(jwtCfg.ExpirySeconds) * time.Second)
+
+	tokenBuilder := jwt.NewBuilder().
+		Issuer(jwtCfg.Issuer).
+		Subject(user.ID.String()).
+		IssuedAt(now).
+		Expiration(exp).
+		Claim(string(appctx.ContextKeyScope), appctx.ScopeAdmin)
+
+	token, err := tokenBuilder.Build()
+	if err != nil {
+		return nil, fmt.Errorf("build jwt token: %w", err)
+	}
+
+	// Sign JWT
+	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), []byte(jwtCfg.Secret)))
+	if err != nil {
+		return nil, fmt.Errorf("sign jwt token: %w", err)
+	}
+
+	// Generate and store refresh token
+	refreshToken, err := s.issueRefreshToken(ctx, user.ID.String())
+	if err != nil {
+		return nil, fmt.Errorf("issue refresh token: %w", err)
+	}
+
+	return &domain.LoginResponse{
+		Tokens: domain.Tokens{
+			AccessToken:  string(signed),
+			RefreshToken: refreshToken,
+			ExpiresAt:    exp,
+		},
+	}, nil
 }
 
 // LoginTenant implements contract.Service.
