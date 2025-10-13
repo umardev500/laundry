@@ -24,4 +24,5 @@ type OrderResponse struct {
 	DeletedAt    *time.Time                  `json:"deleted_at,omitempty"`
 	Items        []*OrderItemResponse        `json:"items"`
 	Payment      *paymentDto.PaymentResponse `json:"payment"`
+	Ref          any                         `json:"ref"`
 }

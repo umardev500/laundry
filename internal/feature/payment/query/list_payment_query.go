@@ -19,10 +19,11 @@ const (
 type ListPaymentQuery struct {
 	pagination.Query
 	Search         string              `query:"search"`          // Search by notes or other fields
-	IncludeDeleted bool                `query:"include_deleted"` // Include soft-deleted payments
 	Order          PaymentOrder        `query:"order"`           // Order by created_at, amount, etc.
 	Status         types.PaymentStatus `query:"status"`          // Filter by payment status (optional)
 	RefType        types.PaymentType   `query:"ref_type"`        // Filter by payment type (optional)
+	IncludeDeleted bool                `query:"include_deleted"` // Include soft-deleted payments
+	IncludeRef     bool                `query:"include_ref"`
 }
 
 // Normalize sets default pagination and ordering values

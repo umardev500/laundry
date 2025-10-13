@@ -40,6 +40,8 @@ func (s *PaymentSeeder) Seed(ctx context.Context) error {
 		RefType         types.PaymentType
 		PaymentMethodID uuid.UUID
 		Amount          float64
+		ReceivedAmount  *float64
+		ChangeAmount    *float64
 		Status          types.PaymentStatus
 		PaidAt          *time.Time
 	}{
@@ -61,8 +63,16 @@ func (s *PaymentSeeder) Seed(ctx context.Context) error {
 			RefType:         types.PaymentTypeOrder,
 			PaymentMethodID: cashID,
 			Amount:          40.0,
-			Status:          types.PaymentStatusPaid,
-			PaidAt:          ptrTime(time.Now().Add(-24 * time.Hour)),
+			ReceivedAmount: func() *float64 {
+				amount := 50.0
+				return &amount
+			}(),
+			ChangeAmount: func() *float64 {
+				amount := 40.0
+				return &amount
+			}(),
+			Status: types.PaymentStatusPaid,
+			PaidAt: ptrTime(time.Now().Add(-24 * time.Hour)),
 		},
 		{
 			ID:              uuid.MustParse("33333333-cccc-cccc-cccc-333333333333"),
@@ -71,8 +81,16 @@ func (s *PaymentSeeder) Seed(ctx context.Context) error {
 			RefID:           uuid.MustParse("dddddddd-4444-4444-4444-dddddddd4444"),
 			RefType:         types.PaymentTypeOrder,
 			PaymentMethodID: cashID,
-			Amount:          25.0,
-			Status:          types.PaymentStatusFailed,
+			Amount:          45.0,
+			ReceivedAmount: func() *float64 {
+				amount := 100.0
+				return &amount
+			}(),
+			ChangeAmount: func() *float64 {
+				amount := 65.0
+				return &amount
+			}(),
+			Status: types.PaymentStatusPaid,
 		},
 	}
 
@@ -90,6 +108,8 @@ func (s *PaymentSeeder) Seed(ctx context.Context) error {
 				SetRefType(payment.RefType(d.RefType)).
 				SetPaymentMethodID(d.PaymentMethodID).
 				SetAmount(d.Amount).
+				SetNillableReceivedAmount(d.ReceivedAmount).
+				SetNillableChangeAmount(d.ChangeAmount).
 				SetStatus(payment.Status(d.Status)).
 				SetNillablePaidAt(d.PaidAt)
 

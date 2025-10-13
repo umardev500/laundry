@@ -69,7 +69,7 @@ func ToResponse(d *domain.Order) *dto.OrderResponse {
 		UpdatedAt:    d.UpdatedAt,
 		DeletedAt:    d.DeletedAt,
 		Items:        ToItemResponseList(d.Items),
-		Payment:      paymentMapper.ToResponse(d.Payment),
+		Payment:      paymentMapper.ToResponse(d.Payment, nil),
 	}
 }
 

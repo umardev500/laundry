@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -118,6 +117,13 @@ func (r *EntPaymentRepository) List(ctx *appctx.Context, q *query.ListPaymentQue
 		qb = qb.Where(payment.DeletedAtIsNil())
 	}
 
+	// Filter for include ref
+	if q.IncludeRef {
+		qb = qb.WithOrder(func(oq *ent.OrderQuery) {
+			oq.WithItems()
+		})
+	}
+
 	// Ordering
 	switch q.Order {
 	case query.PaymentOrderCreatedAtAsc:
@@ -165,7 +171,6 @@ func (r *EntPaymentRepository) applyScope(ctx *appctx.Context, qb *ent.PaymentQu
 	case appctx.ScopeTenant:
 		qb = qb.Where(payment.TenantIDEQ(*ctx.TenantID()))
 	case appctx.ScopeUser:
-		fmt.Println("scope user")
 		qb = qb.Where(payment.UserIDEQ(*ctx.UserID()))
 	case appctx.ScopeAdmin:
 		// no filtering for admin

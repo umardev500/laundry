@@ -16,6 +16,8 @@ func FromEnt(e *ent.Payment) *domain.Payment {
 		return nil
 	}
 
+	ref := getRef(e)
+
 	return &domain.Payment{
 		ID:              e.ID,
 		RefID:           e.RefID,
@@ -31,6 +33,7 @@ func FromEnt(e *ent.Payment) *domain.Payment {
 		CreatedAt:       e.CreatedAt,
 		UpdatedAt:       e.UpdatedAt,
 		DeletedAt:       e.DeletedAt,
+		Ref:             ref,
 	}
 }
 
@@ -44,9 +47,14 @@ func FromEntList(ents []*ent.Payment) []*domain.Payment {
 }
 
 // ToResponse converts a domain Payment to a PaymentResponse DTO
-func ToResponse(d *domain.Payment) *dto.PaymentResponse {
+func ToResponse(d *domain.Payment, refMapper types.RefMapper) *dto.PaymentResponse {
 	if d == nil {
 		return nil
+	}
+
+	var ref any
+	if refMapper != nil && d.Ref != nil {
+		ref = refMapper(d.Ref)
 	}
 
 	return &dto.PaymentResponse{
@@ -64,20 +72,21 @@ func ToResponse(d *domain.Payment) *dto.PaymentResponse {
 		CreatedAt:       d.CreatedAt,
 		UpdatedAt:       d.UpdatedAt,
 		DeletedAt:       d.DeletedAt,
+		Ref:             ref,
 	}
 }
 
 // ToResponseList converts a slice of domain Payments to PaymentResponse DTOs
-func ToResponseList(payments []*domain.Payment) []*dto.PaymentResponse {
+func ToResponseList(payments []*domain.Payment, refMapper types.RefMapper) []*dto.PaymentResponse {
 	res := make([]*dto.PaymentResponse, len(payments))
 	for i, d := range payments {
-		res[i] = ToResponse(d)
+		res[i] = ToResponse(d, refMapper)
 	}
 	return res
 }
 
 // ToResponsePage converts paginated domain Payments to DTO pagination
-func ToResponsePage(data *pagination.PageData[domain.Payment]) *pagination.PageData[dto.PaymentResponse] {
+func ToResponsePage(data *pagination.PageData[domain.Payment], refMapper types.RefMapper) *pagination.PageData[dto.PaymentResponse] {
 	if data == nil || len(data.Data) == 0 {
 		return &pagination.PageData[dto.PaymentResponse]{
 			Data:  []*dto.PaymentResponse{},
@@ -85,10 +94,32 @@ func ToResponsePage(data *pagination.PageData[domain.Payment]) *pagination.PageD
 		}
 	}
 
-	payments := ToResponseList(data.Data)
+	payments := ToResponseList(data.Data, refMapper)
 
 	return &pagination.PageData[dto.PaymentResponse]{
 		Data:  payments,
 		Total: data.Total,
 	}
+}
+
+// getRef returns the ref of a payment
+func getRef(e *ent.Payment) any {
+	if e == nil {
+		return nil
+	}
+
+	refHandlers := map[types.PaymentType]func() any{
+		types.PaymentTypeOrder: func() any {
+			return e.Edges.Order
+		},
+		types.PaymentTypeSubscription: func() any {
+			return nil
+		},
+	}
+
+	if handler, ok := refHandlers[types.PaymentType(e.RefType)]; ok {
+		return handler()
+	}
+
+	return nil
 }
