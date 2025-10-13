@@ -14,6 +14,9 @@ type Service interface {
 	// Update an existing payment
 	Update(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error)
 
+	// Updte status
+	UpdateStatus(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error)
+
 	// GetByID retrieves a payment by its ID
 	GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error)
 

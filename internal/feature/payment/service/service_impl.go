@@ -20,7 +20,10 @@ type PaymentServiceImpl struct {
 }
 
 // NewPaymentService creates a new PaymentService
-func NewPaymentService(repo repository.Repository, paymentMethodService paymentMethodContract.Service) contract.Service {
+func NewPaymentService(
+	repo repository.Repository,
+	paymentMethodService paymentMethodContract.Service,
+) contract.Service {
 	return &PaymentServiceImpl{
 		repo:                 repo,
 		paymentMethodService: paymentMethodService,
@@ -65,6 +68,22 @@ func (s *PaymentServiceImpl) Update(ctx *appctx.Context, p *domain.Payment) (*do
 	}
 
 	return s.repo.Update(ctx, existing)
+}
+
+// UpdateStatus implements contract.Service.
+func (s *PaymentServiceImpl) UpdateStatus(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error) {
+	payment, err := s.findExisting(ctx, payment.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update status
+	err = payment.UpdateStatus(payment.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.Update(ctx, payment)
 }
 
 // GetByID retrieves a payment by its ID

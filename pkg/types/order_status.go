@@ -17,3 +17,56 @@ const (
 	OrderStatusFailed           OrderStatus = "FAILED"             // Failed due to error (e.g., payment issue)
 	OrderStatusPreview          OrderStatus = "PREVIEW"            // Order preview before confirmation
 )
+
+var AllowedOrderTransitions = map[OrderStatus][]OrderStatus{
+	// Initial states
+	OrderStatusPreview: {OrderStatusPending, OrderStatusCancelled},
+	OrderStatusPending: {OrderStatusConfirmed, OrderStatusCancelled, OrderStatusFailed},
+
+	// Confirmed order can move to next steps
+	OrderStatusConfirmed: {
+		OrderStatusPickedUp,
+		OrderStatusCancelled,
+		OrderStatusFailed,
+	},
+
+	OrderStatusPickedUp: {
+		OrderStatusInWashing,
+		OrderStatusFailed,
+	},
+
+	OrderStatusInWashing: {
+		OrderStatusInDrying,
+		OrderStatusFailed,
+	},
+
+	OrderStatusInDrying: {
+		OrderStatusInIroning,
+		OrderStatusFailed,
+	},
+
+	OrderStatusInIroning: {
+		OrderStatusReadyForDelivery,
+		OrderStatusFailed,
+	},
+
+	OrderStatusReadyForDelivery: {
+		OrderStatusOutForDelivery,
+		OrderStatusFailed,
+	},
+
+	OrderStatusOutForDelivery: {
+		OrderStatusDelivered,
+		OrderStatusFailed,
+	},
+
+	OrderStatusDelivered: {
+		OrderStatusCompleted,
+		OrderStatusFailed,
+	},
+
+	// Terminal states
+	OrderStatusCompleted: {},
+	OrderStatusCancelled: {},
+	OrderStatusFailed:    {},
+}

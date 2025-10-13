@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/ent/order"
 	"github.com/umardev500/laundry/internal/app/appctx"
@@ -14,6 +15,40 @@ import (
 // entImpl implements Repository using Ent.
 type entImpl struct {
 	client *entdb.Client
+}
+
+// FindById implements Repository.
+func (r *entImpl) FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
+	conn := r.client.GetConn(ctx)
+	qb := conn.Order.Query().
+		Where(order.IDEQ(id))
+
+	orderObj, err := qb.Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.FromEnt(orderObj), nil
+}
+
+// Update implements Repository.
+func (r *entImpl) Update(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
+	conn := r.client.GetConn(ctx)
+	builder := conn.Order.UpdateOneID(o.ID).
+		SetStatus(order.Status(o.Status)).
+		SetNillableNotes(o.Notes).
+		SetTotalAmount(o.TotalAmount).
+		SetNillableGuestName(o.GuestName).
+		SetNillableGuestEmail(o.GuestEmail).
+		SetNillableGuestPhone(o.GuestPhone).
+		SetNillableGuestAddress(o.GuestAddress)
+
+	orderObj, err := builder.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.FromEnt(orderObj), nil
 }
 
 // NewEntRepository creates a new Ent repository.

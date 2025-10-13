@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -159,6 +160,50 @@ func (p *Payment) Update(
 	}
 
 	return p.Validate()
+}
+
+// UpdateStatus updates the payment status with domain rules
+func (p *Payment) UpdateStatus(newStatus types.PaymentStatus) error {
+	if p == nil {
+		return fmt.Errorf("payment cannot be nil")
+	}
+
+	// Prevent updating to the same status
+	if p.Status == newStatus {
+		return fmt.Errorf("payment status is already %s", newStatus)
+	}
+
+	switch newStatus {
+	case types.PaymentStatusPending:
+		// Only allow moving to pending from failed
+		if p.Status != types.PaymentStatusFailed {
+			return fmt.Errorf("cannot set payment status to pending from %s", p.Status)
+		}
+		p.Status = types.PaymentStatusPending
+		p.PaidAt = nil
+
+	case types.PaymentStatusPaid:
+		// Can only mark paid if currently pending
+		if p.Status != types.PaymentStatusPending {
+			return fmt.Errorf("cannot mark payment as paid from %s", p.Status)
+		}
+		now := time.Now()
+		p.Status = types.PaymentStatusPaid
+		p.PaidAt = &now
+
+	case types.PaymentStatusFailed:
+		// Can fail only from pending
+		if p.Status != types.PaymentStatusPending {
+			return fmt.Errorf("cannot mark payment as failed from %s", p.Status)
+		}
+		p.Status = types.PaymentStatusFailed
+		p.PaidAt = nil
+
+	default:
+		return fmt.Errorf("unsupported payment status: %s", newStatus)
+	}
+
+	return nil
 }
 
 // SoftDelete marks the payment as deleted

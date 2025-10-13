@@ -2,11 +2,14 @@ package domain
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 
+	"github.com/umardev500/laundry/internal/app/appctx"
 	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
 	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
 	serviceDomain "github.com/umardev500/laundry/internal/feature/service/domain"
@@ -29,6 +32,39 @@ type Order struct {
 	Items        []*orderItemDomain.OrderItem
 
 	Payment *paymentDomain.Payment
+}
+
+func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {
+	if o == nil {
+		return fmt.Errorf("order cannot be nil")
+	}
+
+	// Prevent updateing to the same status
+	if o.Status == newStatus {
+		return fmt.Errorf("order is already in status %s", newStatus)
+	}
+
+	// Terminal states cannot be changed
+	if o.Status == types.OrderStatusCancelled || o.Status == types.OrderStatusCompleted {
+		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
+	}
+
+	// Check alloed transitions
+	allowedNext, ok := types.AllowedOrderTransitions[o.Status]
+	if !ok {
+		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
+	}
+
+	valid := slices.Contains(allowedNext, newStatus)
+
+	if !valid {
+		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
+	}
+
+	// Apply new status
+	o.Status = newStatus
+
+	return nil
 }
 
 // AttachOrderID assigns the given order ID to all order items.
@@ -90,6 +126,14 @@ func (o *Order) InitDefaults() {
 	}
 }
 
+func (o *Order) IsGuestOrder() bool {
+	return o.UserID == nil
+}
+
+func (o *Order) IsDeleted() bool {
+	return o.DeletedAt != nil
+}
+
 // GetServiceIDs returns a list of service IDs from the order items.
 func (o *Order) GetServiceIDs() []uuid.UUID {
 	if o == nil || len(o.Items) == 0 {
@@ -103,4 +147,12 @@ func (o *Order) GetServiceIDs() []uuid.UUID {
 		}
 	}
 	return ids
+}
+
+// BelongsToTenant checks whether the service belongs to the tenant in context.
+func (s *Order) BelongsToTenant(ctx *appctx.Context) bool {
+	if ctx.Scope() == appctx.ScopeTenant {
+		return ctx.TenantID() != nil && s.TenantID == *ctx.TenantID()
+	}
+	return true
 }

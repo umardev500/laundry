@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/order/contract"
 	"github.com/umardev500/laundry/internal/feature/order/domain"
@@ -192,4 +194,58 @@ func (s *orderService) List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagi
 
 	// The repository already handles scope filtering (tenant/user/admin)
 	return s.repo.List(ctx, q)
+}
+
+// UpdateStatus implements contract.OrderService.
+func (s *orderService) UpdateStatus(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
+	order, err := s.findExisting(ctx, o.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	order.UpdateStatus(o.Status)
+
+	return s.repo.Update(ctx, order)
+}
+
+// -----------------------
+// Helper methods
+// -----------------------
+
+// findExisting ensures the payment exists, is not soft-deleted, and belongs to tenant
+func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
+	p, err := s.repo.FindById(ctx, id)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return nil, domain.ErrOrderNotFound
+		}
+		return nil, err
+	}
+
+	if p.IsDeleted() {
+		return nil, domain.ErrOrderDeleted
+	}
+
+	if !p.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedOrderAccess
+	}
+
+	return p, nil
+}
+
+// findAllowDeleted fetches a payment regardless of deleted status but checks tenant ownership
+func (s *orderService) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
+	p, err := s.repo.FindById(ctx, id)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return nil, domain.ErrOrderNotFound
+		}
+		return nil, err
+	}
+
+	if !p.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedOrderAccess
+	}
+
+	return p, nil
 }
