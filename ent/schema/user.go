@@ -45,5 +45,10 @@ func (User) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),
+
+		edge.To("payments", Payment.Type).
+			Annotations(
+				entsql.OnDelete(entsql.SetNull),
+			),
 	}
 }

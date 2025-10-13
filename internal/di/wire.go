@@ -72,6 +72,7 @@ func newRegistrars(
 	serviceCategoryReg *servicecategory.Routes,
 	orderReg *order.Routes,
 	paymentMethodReg *paymentmethod.Routes,
+	paymentReg *payment.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
@@ -88,5 +89,6 @@ func newRegistrars(
 		serviceCategoryReg,
 		orderReg,
 		paymentMethodReg,
+		paymentReg,
 	}
 }

@@ -29,6 +29,7 @@ func FromEnt(e *ent.Order) *domain.Order {
 		CreatedAt:    e.CreatedAt,
 		UpdatedAt:    e.UpdatedAt,
 		DeletedAt:    e.DeletedAt,
+		Payment:      paymentMapper.FromEnt(e.Edges.Payment),
 	}
 
 	// Convert related items if preloaded

@@ -4,6 +4,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/payment/domain"
+	"github.com/umardev500/laundry/internal/feature/payment/query"
+	"github.com/umardev500/laundry/pkg/pagination"
 )
 
 type Repository interface {
@@ -18,4 +20,6 @@ type Repository interface {
 
 	// Delete deletes a payment by its ID.
 	Delete(ctx *appctx.Context, id uuid.UUID) error
+
+	List(ctx *appctx.Context, f *query.ListPaymentQuery) (*pagination.PageData[domain.Payment], error)
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/payment/domain"
+	"github.com/umardev500/laundry/internal/feature/payment/query"
+	"github.com/umardev500/laundry/pkg/pagination"
 )
 
 // Service defines the business logic for payments.
@@ -22,6 +24,9 @@ type Service interface {
 
 	// Delete a payment by its ID
 	Delete(ctx *appctx.Context, id uuid.UUID) error
+
+	// List retrieves paginated payments with filters
+	List(ctx *appctx.Context, q *query.ListPaymentQuery) (*pagination.PageData[domain.Payment], error)
 
 	// MarkPaid completes a payment (cash or other methods)
 	MarkPaid(ctx *appctx.Context, id uuid.UUID, receivedAmount float64) (*domain.Payment, error)

@@ -17,11 +17,13 @@ const (
 // ListOrderQuery defines filtering, sorting, and pagination for order listing.
 type ListOrderQuery struct {
 	pagination.Query
-	Search         string  `query:"search"`
-	Status         *string `query:"status"`
-	IncludeDeleted bool    `query:"include_deleted"`
-	IncludeItems   bool    `query:"include_items"`
-	Order          OrderBy `query:"order"`
+	Search               string  `query:"search"`
+	Status               *string `query:"status"`
+	IncludeDeleted       bool    `query:"include_deleted"`
+	IncludeItems         bool    `query:"include_items"`
+	IncludePayment       bool    `query:"include_payment"`
+	IncludePaymentMethod bool    `query:"include_payment_method"`
+	Order                OrderBy `query:"order"`
 }
 
 // Normalize applies default pagination and sort values.

@@ -6,6 +6,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/payment/dto"
 	"github.com/umardev500/laundry/pkg/pagination"
 	"github.com/umardev500/laundry/pkg/types"
+
+	paymentMethodMapper "github.com/umardev500/laundry/internal/feature/paymentmethod/mapper"
 )
 
 // FromEnt converts an Ent Payment to a domain Payment
@@ -24,6 +26,7 @@ func FromEnt(e *ent.Payment) *domain.Payment {
 		ChangeAmount:    &e.ChangeAmount,
 		Notes:           e.Notes,
 		Status:          types.PaymentStatus(e.Status),
+		PaymentMethod:   paymentMethodMapper.FromEnt(e.Edges.PaymentMethod),
 		PaidAt:          e.PaidAt,
 		CreatedAt:       e.CreatedAt,
 		UpdatedAt:       e.UpdatedAt,
@@ -56,6 +59,7 @@ func ToResponse(d *domain.Payment) *dto.PaymentResponse {
 		ChangeAmount:    d.ChangeAmount,
 		Notes:           d.Notes,
 		Status:          d.Status,
+		PaymentMethod:   paymentMethodMapper.ToResponse(d.PaymentMethod),
 		PaidAt:          d.PaidAt,
 		CreatedAt:       d.CreatedAt,
 		UpdatedAt:       d.UpdatedAt,

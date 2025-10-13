@@ -96,6 +96,14 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListOrderQuery) (*paginatio
 		qb = qb.WithItems()
 	}
 
+	if q.IncludePayment {
+		qb = qb.WithPayment(func(pq *ent.PaymentQuery) {
+			if q.IncludePaymentMethod {
+				pq.WithPaymentMethod()
+			}
+		})
+	}
+
 	// Search by guest info
 	if q.Search != "" {
 		qb = qb.Where(

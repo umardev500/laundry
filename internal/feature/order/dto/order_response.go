@@ -23,5 +23,5 @@ type OrderResponse struct {
 	UpdatedAt    time.Time                   `json:"updated_at"`
 	DeletedAt    *time.Time                  `json:"deleted_at,omitempty"`
 	Items        []*OrderItemResponse        `json:"items"`
-	Payment      *paymentDto.PaymentResponse `json:"payment,omitempty"`
+	Payment      *paymentDto.PaymentResponse `json:"payment"`
 }

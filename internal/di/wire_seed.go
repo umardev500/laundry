@@ -12,6 +12,8 @@ import (
 	machineSeeder "github.com/umardev500/laundry/internal/feature/machine/seeder"
 	machineTypeSeeder "github.com/umardev500/laundry/internal/feature/machinetype/seeder"
 	orderSeeder "github.com/umardev500/laundry/internal/feature/order/seeder"
+	paymentSeeder "github.com/umardev500/laundry/internal/feature/payment/seeder"
+	paymentMethodSeeder "github.com/umardev500/laundry/internal/feature/paymentmethod/seeder"
 	platformUserSeeder "github.com/umardev500/laundry/internal/feature/platformuser/seeder"
 	rbacSeeder "github.com/umardev500/laundry/internal/feature/rbac/seeder"
 	serviceSeeder "github.com/umardev500/laundry/internal/feature/service/seeder"
@@ -34,6 +36,8 @@ func NewSeederSet(
 	service []serviceSeeder.ServiceSeederSet,
 	serviceCategory []serviceCategorySeeder.ServiceCategorySeederSet,
 	orderSeeder []orderSeeder.OrderSeederSet,
+	payment []paymentSeeder.PaymentSeederSet,
+	paymentMethod []paymentMethodSeeder.PaymentMethodSeederSet,
 ) []seeder.Seeder {
 	var all []seeder.Seeder
 
@@ -92,6 +96,16 @@ func NewSeederSet(
 		all = append(all, s)
 	}
 
+	// append all payment method seeder
+	for _, s := range paymentMethod {
+		all = append(all, s)
+	}
+
+	// append all payment seeder
+	for _, s := range payment {
+		all = append(all, s)
+	}
+
 	return all
 }
 
@@ -109,6 +123,8 @@ func InitialzeSeeder(cfg *config.Config) ([]seeder.Seeder, error) {
 		serviceSeeder.ProviderSet,
 		serviceCategorySeeder.ProviderSet,
 		orderSeeder.ProviderSet,
+		paymentSeeder.ProviderSet,
+		paymentMethodSeeder.ProviderSet,
 		NewSeederSet,
 	)
 

@@ -8,7 +8,9 @@ import (
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/payment/contract"
 	"github.com/umardev500/laundry/internal/feature/payment/domain"
+	"github.com/umardev500/laundry/internal/feature/payment/query"
 	"github.com/umardev500/laundry/internal/feature/payment/repository"
+	"github.com/umardev500/laundry/pkg/pagination"
 
 	paymentMethodContract "github.com/umardev500/laundry/internal/feature/paymentmethod/contract"
 )
@@ -17,6 +19,16 @@ import (
 type PaymentServiceImpl struct {
 	repo                 repository.Repository
 	paymentMethodService paymentMethodContract.Service
+}
+
+// List implements contract.Service.
+func (s *PaymentServiceImpl) List(ctx *appctx.Context, q *query.ListPaymentQuery) (*pagination.PageData[domain.Payment], error) {
+	if q == nil {
+		q = &query.ListPaymentQuery{}
+	}
+	q.Normalize()
+
+	return s.repo.List(ctx, q)
 }
 
 // NewPaymentService creates a new PaymentService

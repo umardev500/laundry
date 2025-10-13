@@ -7,14 +7,18 @@ import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/pkg/types"
+
+	paymentMethodDomain "github.com/umardev500/laundry/internal/feature/paymentmethod/domain"
 )
 
 type Payment struct {
 	ID              uuid.UUID
+	UserID          *uuid.UUID
 	TenantID        *uuid.UUID
 	RefID           uuid.UUID
 	RefType         types.PaymentType
 	PaymentMethodID uuid.UUID
+	PaymentMethod   *paymentMethodDomain.PaymentMethod
 	Amount          float64
 	ReceivedAmount  *float64
 	ChangeAmount    *float64
