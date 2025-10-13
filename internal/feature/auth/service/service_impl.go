@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -45,173 +46,70 @@ func NewService(
 	}
 }
 
+// --- Public login methods ---
+
 func (s *serviceImpl) LoginAdmin(ctx *appctx.Context, email, password string) (*domain.LoginResponse, error) {
-	email = normalizeEmail(email)
-
-	user, err := s.userService.GetByEmail(ctx, email)
-	if err != nil {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	if !security.Compare(user.Password, password) {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	// Get platform user
-	pu, err := s.platformUserService.GetByUserID(ctx, user.ID)
-	if err != nil {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	if pu == nil {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	fmt.Println(pu)
-
-	// Build JWT claims
-	now := time.Now().UTC()
-	jwtCfg := s.config.JWT
-	exp := now.Add(time.Duration(jwtCfg.ExpirySeconds) * time.Second)
-
-	tokenBuilder := jwt.NewBuilder().
-		Issuer(jwtCfg.Issuer).
-		Subject(user.ID.String()).
-		IssuedAt(now).
-		Expiration(exp).
-		Claim(string(appctx.ContextKeyScope), appctx.ScopeAdmin)
-
-	token, err := tokenBuilder.Build()
-	if err != nil {
-		return nil, fmt.Errorf("build jwt token: %w", err)
-	}
-
-	// Sign JWT
-	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), []byte(jwtCfg.Secret)))
-	if err != nil {
-		return nil, fmt.Errorf("sign jwt token: %w", err)
-	}
-
-	// Generate and store refresh token
-	refreshToken, err := s.issueRefreshToken(ctx, user.ID.String())
-	if err != nil {
-		return nil, fmt.Errorf("issue refresh token: %w", err)
-	}
-
-	return &domain.LoginResponse{
-		Tokens: domain.Tokens{
-			AccessToken:  string(signed),
-			RefreshToken: refreshToken,
-			ExpiresAt:    exp,
-		},
-	}, nil
+	return s.loginWithScope(ctx, email, password, appctx.ScopeAdmin, func(userID uuid.UUID) (map[string]any, error) {
+		pu, err := s.platformUserService.GetByUserID(ctx, userID)
+		if err != nil || pu == nil {
+			return nil, domain.ErrInvalidCredentials
+		}
+		return nil, nil // No extra claims needed for admin
+	})
 }
 
-// LoginTenant implements contract.Service.
-func (s *serviceImpl) LoginTenant(ctx *appctx.Context, email string, password string) (*domain.LoginResponse, error) {
-	email = normalizeEmail(email)
-
-	user, err := s.userService.GetByEmail(ctx, email)
-	if err != nil {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	if !security.Compare(user.Password, password) {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	// Get tenant
-	tenants, err := s.tenantUserService.GetByUser(ctx, user.ID)
-	if err != nil {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	if len(tenants) == 0 {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	if len(tenants) > 1 {
-		return nil, domain.ErrMultipleTenants
-	}
-
-	tenant := tenants[0]
-
-	// Build JWT claims
-	now := time.Now().UTC()
-	jwtCfg := s.config.JWT
-	exp := now.Add(time.Duration(jwtCfg.ExpirySeconds) * time.Second)
-
-	tokenBuilder := jwt.NewBuilder().
-		Issuer(jwtCfg.Issuer).
-		Subject(user.ID.String()).
-		IssuedAt(now).
-		Expiration(exp).
-		Claim(string(appctx.ContextKeyScope), appctx.ScopeTenant).
-		Claim(string(appctx.ContextKeyTenantID), tenant.TenantID.String())
-
-	token, err := tokenBuilder.Build()
-	if err != nil {
-		return nil, fmt.Errorf("build jwt token: %w", err)
-	}
-
-	// Sign JWT
-	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), []byte(jwtCfg.Secret)))
-	if err != nil {
-		return nil, fmt.Errorf("sign jwt token: %w", err)
-	}
-
-	// Generate and store refresh token
-	refreshToken, err := s.issueRefreshToken(ctx, user.ID.String())
-	if err != nil {
-		return nil, fmt.Errorf("issue refresh token: %w", err)
-	}
-
-	return &domain.LoginResponse{
-		Tokens: domain.Tokens{
-			AccessToken:  string(signed),
-			RefreshToken: refreshToken,
-			ExpiresAt:    exp,
-		},
-	}, nil
+func (s *serviceImpl) LoginTenant(ctx *appctx.Context, email, password string) (*domain.LoginResponse, error) {
+	return s.loginWithScope(ctx, email, password, appctx.ScopeTenant, func(userID uuid.UUID) (map[string]any, error) {
+		tenants, err := s.tenantUserService.GetByUser(ctx, userID)
+		if err != nil {
+			return nil, domain.ErrInvalidCredentials
+		}
+		if len(tenants) == 0 {
+			return nil, domain.ErrInvalidCredentials
+		}
+		if len(tenants) > 1 {
+			return nil, domain.ErrMultipleTenants
+		}
+		return map[string]any{
+			string(appctx.ContextKeyTenantID): tenants[0].TenantID.String(),
+		}, nil
+	})
 }
 
-// Login authenticates a user and issues access & refresh tokens.
 func (s *serviceImpl) Login(ctx *appctx.Context, email, password string) (*domain.LoginResponse, error) {
+	return s.loginWithScope(ctx, email, password, appctx.ScopeUser, nil)
+}
+
+// --- Internal helper ---
+
+type extraClaimsFunc func(userID uuid.UUID) (map[string]any, error)
+
+func (s *serviceImpl) loginWithScope(ctx *appctx.Context, email, password string, scope appctx.Scope, extraClaims extraClaimsFunc) (*domain.LoginResponse, error) {
 	email = normalizeEmail(email)
 
 	user, err := s.userService.GetByEmail(ctx, email)
-	if err != nil {
+	if err != nil || !security.Compare(user.Password, password) {
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	if !security.Compare(user.Password, password) {
-		return nil, domain.ErrInvalidCredentials
+	claims := map[string]any{
+		string(appctx.ContextKeyScope): scope,
 	}
 
-	// Build JWT claims
-	now := time.Now().UTC()
-	jwtCfg := s.config.JWT
-	exp := now.Add(time.Duration(jwtCfg.ExpirySeconds) * time.Second)
+	if extraClaims != nil {
+		extra, err := extraClaims(user.ID)
+		if err != nil {
+			return nil, err
+		}
 
-	tokenBuilder := jwt.NewBuilder().
-		Issuer(jwtCfg.Issuer).
-		Subject(user.ID.String()).
-		IssuedAt(now).
-		Expiration(exp).
-		Claim(string(appctx.ContextKeyScope), appctx.ScopeUser)
+		maps.Copy(claims, extra)
+	}
 
-	token, err := tokenBuilder.Build()
+	accessToken, exp, err := s.buildJWT(user.ID.String(), claims)
 	if err != nil {
-		return nil, fmt.Errorf("build jwt token: %w", err)
+		return nil, err
 	}
 
-	// Sign JWT
-	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), []byte(jwtCfg.Secret)))
-	if err != nil {
-		return nil, fmt.Errorf("sign jwt token: %w", err)
-	}
-
-	// Generate and store refresh token
 	refreshToken, err := s.issueRefreshToken(ctx, user.ID.String())
 	if err != nil {
 		return nil, fmt.Errorf("issue refresh token: %w", err)
@@ -219,11 +117,39 @@ func (s *serviceImpl) Login(ctx *appctx.Context, email, password string) (*domai
 
 	return &domain.LoginResponse{
 		Tokens: domain.Tokens{
-			AccessToken:  string(signed),
+			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			ExpiresAt:    exp,
 		},
 	}, nil
+}
+
+// buildJWT creates and signs a JWT token.
+func (s *serviceImpl) buildJWT(userID string, claims map[string]any) (string, time.Time, error) {
+	now := time.Now().UTC()
+	exp := now.Add(time.Duration(s.config.JWT.ExpirySeconds) * time.Second)
+
+	builder := jwt.NewBuilder().
+		Issuer(s.config.JWT.Issuer).
+		Subject(userID).
+		IssuedAt(now).
+		Expiration(exp)
+
+	for k, v := range claims {
+		builder.Claim(k, v)
+	}
+
+	token, err := builder.Build()
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("build jwt token: %w", err)
+	}
+
+	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), []byte(s.config.JWT.Secret)))
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("sign jwt token: %w", err)
+	}
+
+	return string(signed), exp, nil
 }
 
 // issueRefreshToken creates and persists a refresh token securely.
