@@ -23,6 +23,7 @@ type ListOrderQuery struct {
 	IncludeItems         bool    `query:"include_items"`
 	IncludePayment       bool    `query:"include_payment"`
 	IncludePaymentMethod bool    `query:"include_payment_method"`
+	IncludeStatus        bool    `query:"include_status"`
 	Order                OrderBy `query:"order"`
 }
 

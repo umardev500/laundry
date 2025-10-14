@@ -11,6 +11,7 @@ import (
 
 	"github.com/umardev500/laundry/internal/app/appctx"
 	orderItemDomain "github.com/umardev500/laundry/internal/feature/orderitem/domain"
+	orderStatusHistoryDomain "github.com/umardev500/laundry/internal/feature/orderstatushistory/domain"
 	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
 	serviceDomain "github.com/umardev500/laundry/internal/feature/service/domain"
 )
@@ -31,7 +32,8 @@ type Order struct {
 	DeletedAt    *time.Time
 	Items        []*orderItemDomain.OrderItem
 
-	Payment *paymentDomain.Payment
+	Payment  *paymentDomain.Payment
+	Statuses []*orderStatusHistoryDomain.OrderStatusHistory
 }
 
 func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {

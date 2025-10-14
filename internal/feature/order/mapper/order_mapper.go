@@ -7,6 +7,7 @@ import (
 	"github.com/umardev500/laundry/pkg/pagination"
 	"github.com/umardev500/laundry/pkg/types"
 
+	orderStatusHistoryMapper "github.com/umardev500/laundry/internal/feature/orderstatushistory/mapper"
 	paymentMapper "github.com/umardev500/laundry/internal/feature/payment/mapper"
 )
 
@@ -31,6 +32,7 @@ func FromEnt(e *ent.Order) *domain.Order {
 		UpdatedAt:    e.UpdatedAt,
 		DeletedAt:    e.DeletedAt,
 		Payment:      paymentMapper.FromEnt(e.Edges.Payment),
+		Statuses:     orderStatusHistoryMapper.FromEntStatusHistoryList(e.Edges.StatusHistory),
 	}
 
 	// Convert related items if preloaded
@@ -72,6 +74,7 @@ func ToResponse(d *domain.Order) *dto.OrderResponse {
 		DeletedAt:    d.DeletedAt,
 		Items:        ToItemResponseList(d.Items),
 		Payment:      paymentMapper.ToResponse(d.Payment, nil),
+		Statuses:     orderStatusHistoryMapper.FromDomainList(d.Statuses, nil),
 	}
 }
 

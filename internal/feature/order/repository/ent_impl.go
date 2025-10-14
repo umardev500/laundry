@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/ent/order"
+	"github.com/umardev500/laundry/ent/orderstatushistory"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/mapper"
@@ -101,6 +102,13 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListOrderQuery) (*paginatio
 			if q.IncludePaymentMethod {
 				pq.WithPaymentMethod()
 			}
+		})
+	}
+
+	// Conditionally preload status
+	if q.IncludeStatus {
+		qb = qb.WithStatusHistory(func(shq *ent.OrderStatusHistoryQuery) {
+			shq.Order(ent.Asc(orderstatushistory.FieldCreatedAt))
 		})
 	}
 

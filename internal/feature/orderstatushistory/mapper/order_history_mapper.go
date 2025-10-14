@@ -40,22 +40,39 @@ func ToResponse(d *domain.OrderStatusHistory, refMapper types.RefMapper) *dto.Or
 	if d == nil {
 		return nil
 	}
+
+	var orderRef any
+	if refMapper != nil {
+		orderRef = refMapper(d.Order)
+	}
+
 	return &dto.OrderStatusHistoryResponse{
 		ID:        d.ID,
 		OrderID:   d.OrderID,
 		Status:    d.Status,
 		Notes:     d.Notes,
 		CreatedAt: d.CreatedAt,
-		Order:     refMapper(d.Order),
+		Order:     orderRef,
 	}
+}
+
+// FromDomainList converts a slice of domain OrderStatusHistory to a slice of DTOs
+func FromDomainList(list []*domain.OrderStatusHistory, refMapper types.RefMapper) []*dto.OrderStatusHistoryResponse {
+	if len(list) == 0 {
+		return []*dto.OrderStatusHistoryResponse{}
+	}
+
+	res := make([]*dto.OrderStatusHistoryResponse, len(list))
+	for i, d := range list {
+		res[i] = ToResponse(d, refMapper)
+	}
+	return res
 }
 
 // ToResponsePage converts paginated domain OrderStatusHistory to DTO page
 func ToResponsePage(data *pagination.PageData[domain.OrderStatusHistory], refMapper types.RefMapper) *pagination.PageData[dto.OrderStatusHistoryResponse] {
-	res := make([]*dto.OrderStatusHistoryResponse, len(data.Data))
-	for i, m := range data.Data {
-		res[i] = ToResponse(m, refMapper)
-	}
+	res := FromDomainList(data.Data, refMapper)
+
 	return &pagination.PageData[dto.OrderStatusHistoryResponse]{
 		Data:  res,
 		Total: data.Total,
