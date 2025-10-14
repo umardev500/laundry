@@ -42,7 +42,7 @@ func (Order) Fields() []ent.Field {
 			Default(string(types.OrderStatusPending)),
 
 		field.Float("total_amount").Default(0.0),
-		field.String("notes").Optional(),
+		field.String("notes").Optional().Nillable(),
 
 		// Guest info (only if user_id is null)
 		field.String("guest_name").Optional().Nillable(),

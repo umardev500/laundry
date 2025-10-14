@@ -15,6 +15,7 @@ type OrderResponse struct {
 	UserID       *uuid.UUID                  `json:"user_id,omitempty"`
 	Status       types.OrderStatus           `json:"status"`
 	TotalAmount  float64                     `json:"total_amount"`
+	Notes        *string                     `json:"notes,omitempty"`
 	GuestName    *string                     `json:"guest_name,omitempty"`
 	GuestEmail   *string                     `json:"guest_email,omitempty"`
 	GuestPhone   *string                     `json:"guest_phone,omitempty"`
@@ -23,6 +24,5 @@ type OrderResponse struct {
 	UpdatedAt    time.Time                   `json:"updated_at"`
 	DeletedAt    *time.Time                  `json:"deleted_at,omitempty"`
 	Items        []*OrderItemResponse        `json:"items"`
-	Payment      *paymentDto.PaymentResponse `json:"payment"`
-	Ref          any                         `json:"ref"`
+	Payment      *paymentDto.PaymentResponse `json:"payment,omitempty"`
 }
