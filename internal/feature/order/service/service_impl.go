@@ -154,6 +154,7 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 		var err error
 		newCtx := appctx.New(txCtx)
 
+		// Create the order
 		result, err = s.repo.Create(newCtx, o)
 		if err != nil {
 			return err
@@ -162,15 +163,25 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 		// 🔹 Attach the generated OrderID to each order item before creating them
 		o.AttachOrderID(result.ID)
 
+		// Create the order items
 		createdItems, err := s.orderItemService.Create(newCtx, o.Items)
 		if err != nil {
 			return err
 		}
 
+		// Assign the created items to the result
 		result.Items = createdItems
-
 		result.Payment = o.Payment // Assign the payment details from the input order
+
+		// Create the payment
 		p, err := s.CreatePayment(newCtx, result)
+		if err != nil {
+			return err
+		}
+
+		// Update the order with the payment ID
+		result.PaymentID = &p.ID
+		_, err = s.repo.Update(newCtx, result)
 		if err != nil {
 			return err
 		}

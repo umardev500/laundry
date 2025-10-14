@@ -1,6 +1,8 @@
 package mapper
 
 import (
+	"fmt"
+
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/dto"
@@ -16,6 +18,8 @@ func FromEnt(e *ent.Order) *domain.Order {
 	if e == nil {
 		return nil
 	}
+
+	fmt.Println(e.Edges.Payment)
 
 	order := &domain.Order{
 		ID:           e.ID,

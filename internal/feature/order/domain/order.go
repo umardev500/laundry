@@ -18,6 +18,7 @@ import (
 
 type Order struct {
 	ID           uuid.UUID
+	PaymentID    *uuid.UUID
 	TenantID     uuid.UUID
 	UserID       *uuid.UUID
 	Status       types.OrderStatus

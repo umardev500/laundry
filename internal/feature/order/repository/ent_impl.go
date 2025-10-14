@@ -68,7 +68,8 @@ func (r *entImpl) Update(ctx *appctx.Context, o *domain.Order) (*domain.Order, e
 		SetNillableGuestName(o.GuestName).
 		SetNillableGuestEmail(o.GuestEmail).
 		SetNillableGuestPhone(o.GuestPhone).
-		SetNillableGuestAddress(o.GuestAddress)
+		SetNillableGuestAddress(o.GuestAddress).
+		SetNillablePaymentID(o.PaymentID)
 
 	orderObj, err := builder.Save(ctx)
 	if err != nil {
