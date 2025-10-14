@@ -13,6 +13,8 @@ import (
 	"github.com/umardev500/laundry/internal/feature/order/query"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/validator"
+
+	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
 )
 
 type Handler struct {
@@ -50,12 +52,24 @@ func (h *Handler) GuestOrder(c *fiber.Ctx) error {
 
 	result, err := h.service.GuestOrder(ctx, data)
 	if err != nil {
-		switch e := err.(type) {
-		case *domain.ServiceUnavailableError:
-			return httpx.BadRequest(c, e.Error())
-		}
+		var svcErr *domain.ServiceUnavailableError
+		isServiceUnavailable := errors.As(err, &svcErr)
 
-		return httpx.InternalServerError(c, err.Error())
+		switch {
+		case isServiceUnavailable,
+			errors.Is(err, domain.ErrOrderItemsRequired),
+			errors.Is(err, domain.ErrGuestEmailOrPhoneRequired),
+			errors.Is(err, domain.ErrOrderNotFound),
+			errors.Is(err, domain.ErrOrderDeleted),
+			errors.Is(err, paymentDomain.ErrInsufficientPayment):
+			return httpx.BadRequest(c, err.Error())
+
+		case errors.Is(err, domain.ErrUnauthorizedOrderAccess):
+			return httpx.Forbidden(c, err.Error())
+
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(result))
