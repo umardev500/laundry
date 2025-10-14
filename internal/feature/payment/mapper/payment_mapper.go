@@ -20,6 +20,8 @@ func FromEnt(e *ent.Payment) *domain.Payment {
 
 	return &domain.Payment{
 		ID:              e.ID,
+		UserID:          e.UserID,
+		TenantID:        e.TenantID,
 		RefID:           e.RefID,
 		RefType:         types.PaymentType(e.RefType),
 		PaymentMethodID: e.PaymentMethodID,
@@ -59,6 +61,8 @@ func ToResponse(d *domain.Payment, refMapper types.RefMapper) *dto.PaymentRespon
 
 	return &dto.PaymentResponse{
 		ID:              d.ID,
+		UserID:          d.UserID,
+		TenantID:        d.TenantID,
 		RefID:           d.RefID,
 		RefType:         d.RefType,
 		PaymentMethodID: d.PaymentMethodID,

@@ -12,6 +12,8 @@ import (
 // PaymentResponse represents a Payment for API responses.
 type PaymentResponse struct {
 	ID              uuid.UUID                               `json:"id"`
+	UserID          *uuid.UUID                              `json:"user_id,omitempty"`
+	TenantID        *uuid.UUID                              `json:"tenant_id,omitempty"`
 	RefID           uuid.UUID                               `json:"ref_id"`
 	RefType         types.PaymentType                       `json:"ref_type"`
 	PaymentMethodID uuid.UUID                               `json:"payment_method_id,omitempty"`

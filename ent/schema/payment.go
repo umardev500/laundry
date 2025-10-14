@@ -19,8 +19,8 @@ type Payment struct {
 func (Payment) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
-		field.UUID("user_id", uuid.UUID{}).Optional().Immutable(),
-		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable(),
+		field.UUID("user_id", uuid.UUID{}).Optional().Immutable().Nillable(),
+		field.UUID("tenant_id", uuid.UUID{}).Optional().Immutable().Nillable(),
 		field.UUID("ref_id", uuid.UUID{}).Immutable(),
 		field.Enum("ref_type").
 			Values(string(types.PaymentTypeOrder), string(types.PaymentTypeSubscription)).Immutable(),
