@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
@@ -57,6 +59,36 @@ func (h *Handler) GuestOrder(c *fiber.Ctx) error {
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(result))
+}
+
+func (h *Handler) FindByID(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return httpx.BadRequest(c, "invalid order ID")
+	}
+
+	var q query.OrderQuery
+	if err := c.QueryParser(&q); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	ctx := appctx.New(c.UserContext())
+	result, err := h.service.FindByID(ctx, id, &q)
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrOrderNotFound):
+			return httpx.NotFound(c, err.Error())
+		case errors.Is(err, domain.ErrOrderDeleted):
+			return httpx.BadRequest(c, err.Error())
+		case errors.Is(err, domain.ErrUnauthorizedOrderAccess):
+			return httpx.Forbidden(c, err.Error())
+		}
+
+		return httpx.InternalServerError(c, err.Error())
+	}
+
+	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(result))
 }
 
 // List handles GET /orders requests with filtering, sorting, and pagination

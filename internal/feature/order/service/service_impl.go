@@ -196,9 +196,14 @@ func (s *orderService) List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagi
 	return s.repo.List(ctx, q)
 }
 
+// FindByID implements contract.OrderService.
+func (s *orderService) FindByID(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error) {
+	return s.findExisting(ctx, id, q)
+}
+
 // UpdateStatus implements contract.OrderService.
 func (s *orderService) UpdateStatus(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
-	order, err := s.findExisting(ctx, o.ID)
+	order, err := s.findExisting(ctx, o.ID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +218,12 @@ func (s *orderService) UpdateStatus(ctx *appctx.Context, o *domain.Order) (*doma
 // -----------------------
 
 // findExisting ensures the payment exists, is not soft-deleted, and belongs to tenant
-func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
-	p, err := s.repo.FindById(ctx, id)
+func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error) {
+	if q == nil {
+		q = &query.OrderQuery{}
+	}
+
+	p, err := s.repo.FindById(ctx, id, q)
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			return nil, domain.ErrOrderNotFound
@@ -235,7 +244,7 @@ func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.
 
 // findAllowDeleted fetches a payment regardless of deleted status but checks tenant ownership
 func (s *orderService) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
-	p, err := s.repo.FindById(ctx, id)
+	p, err := s.repo.FindById(ctx, id, nil)
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			return nil, domain.ErrOrderNotFound

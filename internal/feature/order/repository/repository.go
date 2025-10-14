@@ -11,7 +11,7 @@ import (
 
 type Repository interface {
 	Create(ctx *appctx.Context, o *domain.Order) (*domain.Order, error)
-	FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error)
+	FindById(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error)
 	List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagination.PageData[domain.Order], error)
 	Update(ctx *appctx.Context, o *domain.Order) (*domain.Order, error)
 }

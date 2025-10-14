@@ -27,9 +27,9 @@ func (r *Routes) RegisterRoutes(router fiber.Router) {
 	orders.Get("/", r.handler.List)
 	orders.Post("/guest", r.handler.GuestOrder)
 	orders.Post("/preview", r.handler.Preview)
+	orders.Get("/:id", r.handler.FindByID)
 
 	// If more handlers like Get, Create, Update, Delete are added later, register here
-	// orders.Get("/:id", r.handler.Get)
 	// orders.Put("/:id", r.handler.Update)
 	// orders.Delete("/:id", r.handler.Delete)
 }

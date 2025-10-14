@@ -19,10 +19,36 @@ type entImpl struct {
 }
 
 // FindById implements Repository.
-func (r *entImpl) FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
+func (r *entImpl) FindById(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error) {
 	conn := r.client.GetConn(ctx)
 	qb := conn.Order.Query().
 		Where(order.IDEQ(id))
+	qb = r.applyScope(ctx, qb)
+
+	// Conditionally preload items
+	if q.IncludeItems {
+		qb = qb.WithItems()
+	}
+
+	if q.IncludePayment {
+		qb = qb.WithPayment(func(pq *ent.PaymentQuery) {
+			if q.IncludePaymentMethod {
+				pq.WithPaymentMethod()
+			}
+		})
+	}
+
+	// Conditionally preload status
+	if q.IncludeStatuses {
+		qb = qb.WithStatusHistory(func(shq *ent.OrderStatusHistoryQuery) {
+			shq.Order(ent.Asc(orderstatushistory.FieldCreatedAt))
+		})
+	}
+
+	// Exclude deleted orders
+	if !q.IncludeDeleted {
+		qb = qb.Where(order.DeletedAtIsNil())
+	}
 
 	orderObj, err := qb.Only(ctx)
 	if err != nil {
@@ -106,7 +132,7 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListOrderQuery) (*paginatio
 	}
 
 	// Conditionally preload status
-	if q.IncludeStatus {
+	if q.IncludeStatuses {
 		qb = qb.WithStatusHistory(func(shq *ent.OrderStatusHistoryQuery) {
 			shq.Order(ent.Asc(orderstatushistory.FieldCreatedAt))
 		})
