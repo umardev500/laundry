@@ -10,13 +10,13 @@ import (
 	"github.com/umardev500/laundry/pkg/types"
 )
 
-// OrderStatus holds the schema definition for the OrderStatus entity.
-type OrderStatus struct {
+// OrderStatusHistory holds the schema definition for the OrderStatusHistory entity.
+type OrderStatusHistory struct {
 	ent.Schema
 }
 
 // Fields of the OrderStatus.
-func (OrderStatus) Fields() []ent.Field {
+func (OrderStatusHistory) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("order_id", uuid.UUID{}).Immutable().Comment("Reference to the order"),
@@ -36,13 +36,13 @@ func (OrderStatus) Fields() []ent.Field {
 				string(types.OrderStatusFailed),
 				string(types.OrderStatusPreview),
 			),
-		field.Time("created_at").Default(time.Now).Immutable(),
 		field.String("notes").Optional().Nillable(),
+		field.Time("created_at").Default(time.Now).Immutable(),
 	}
 }
 
 // Edges of the OrderStatus.
-func (OrderStatus) Edges() []ent.Edge {
+func (OrderStatusHistory) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).
 			Ref("status_history").

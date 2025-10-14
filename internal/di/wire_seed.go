@@ -12,6 +12,7 @@ import (
 	machineSeeder "github.com/umardev500/laundry/internal/feature/machine/seeder"
 	machineTypeSeeder "github.com/umardev500/laundry/internal/feature/machinetype/seeder"
 	orderSeeder "github.com/umardev500/laundry/internal/feature/order/seeder"
+	orderStatusHistorySeeder "github.com/umardev500/laundry/internal/feature/orderstatushistory/seeder"
 	paymentSeeder "github.com/umardev500/laundry/internal/feature/payment/seeder"
 	paymentMethodSeeder "github.com/umardev500/laundry/internal/feature/paymentmethod/seeder"
 	platformUserSeeder "github.com/umardev500/laundry/internal/feature/platformuser/seeder"
@@ -38,6 +39,7 @@ func NewSeederSet(
 	orderSeeder []orderSeeder.OrderSeederSet,
 	payment []paymentSeeder.PaymentSeederSet,
 	paymentMethod []paymentMethodSeeder.PaymentMethodSeederSet,
+	orderStatusHistory []orderStatusHistorySeeder.OrderStatusHistorySeederSet,
 ) []seeder.Seeder {
 	var all []seeder.Seeder
 
@@ -106,6 +108,11 @@ func NewSeederSet(
 		all = append(all, s)
 	}
 
+	// append all order status history seeder
+	for _, s := range orderStatusHistory {
+		all = append(all, s)
+	}
+
 	return all
 }
 
@@ -125,6 +132,7 @@ func InitialzeSeeder(cfg *config.Config) ([]seeder.Seeder, error) {
 		orderSeeder.ProviderSet,
 		paymentSeeder.ProviderSet,
 		paymentMethodSeeder.ProviderSet,
+		orderStatusHistorySeeder.ProviderSet,
 		NewSeederSet,
 	)
 
