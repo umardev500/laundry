@@ -2,7 +2,6 @@ package domain
 
 import (
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,21 +46,14 @@ func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {
 		return fmt.Errorf("order is already in status %s", newStatus)
 	}
 
-	// Terminal states cannot be changed
-	if o.Status == types.OrderStatusCancelled || o.Status == types.OrderStatusCompleted {
-		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
-	}
-
-	// Check allowed transitions
-	allowedNext, ok := types.AllowedOrderTransitions[o.Status]
-	if !ok {
-		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
-	}
-
-	valid := slices.Contains(allowedNext, newStatus)
-
-	if !valid {
-		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
+	// Check for allowed staatus transitions
+	if !o.Status.CanTransitionTo(newStatus) {
+		allowedStatuses := o.Status.AllowedNextStatuses()
+		return errors.NewErrInvalidStatusTransition(
+			string(o.Status),
+			string(newStatus),
+			allowedStatuses,
+		)
 	}
 
 	// Apply new status

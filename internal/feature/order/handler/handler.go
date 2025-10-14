@@ -12,9 +12,11 @@ import (
 	"github.com/umardev500/laundry/internal/feature/order/mapper"
 	"github.com/umardev500/laundry/internal/feature/order/query"
 	"github.com/umardev500/laundry/pkg/httpx"
+	"github.com/umardev500/laundry/pkg/types"
 	"github.com/umardev500/laundry/pkg/validator"
 
 	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
+	errorsPkg "github.com/umardev500/laundry/pkg/errors"
 )
 
 type Handler struct {
@@ -27,6 +29,57 @@ func NewHandler(service contract.OrderService, validator *validator.Validator) *
 		service:   service,
 		validator: validator,
 	}
+}
+
+// UpdateStatus PATCH /api/orders/:id/status
+func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return httpx.BadRequest(c, "invalid order ID")
+	}
+
+	var q query.UpdateStatusQuery
+	if err := c.ParamsParser(&q); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	if err := q.Validate(); err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	ctx := appctx.New(c.UserContext())
+	m, err := q.ToDomain(id)
+	if err != nil {
+		return httpx.BadRequest(c, err.Error())
+	}
+
+	res, err := h.service.UpdateStatus(ctx, m)
+
+	if err != nil {
+		var transitionErr *errorsPkg.ErrInvalidStatusTransition[types.OrderStatus]
+		isTransitionError := errors.As(err, &transitionErr)
+
+		switch {
+		case isTransitionError:
+			return httpx.JSONErrorWithData(
+				c,
+				fiber.StatusBadRequest,
+				"invalid status transition",
+				transitionErr,
+				err,
+			)
+		case errors.Is(err, domain.ErrOrderNotFound):
+			return httpx.NotFound(c, err.Error())
+		case errors.Is(err, domain.ErrOrderDeleted):
+			return httpx.Forbidden(c, err.Error())
+		case errors.Is(err, types.ErrStatusUnchanged):
+			return httpx.JSONWithMessage[*dto.OrderResponse](c, fiber.StatusOK, nil, err.Error())
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
+	}
+
+	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
 }
 
 func (h *Handler) GuestOrder(c *fiber.Ctx) error {
@@ -63,6 +116,9 @@ func (h *Handler) GuestOrder(c *fiber.Ctx) error {
 			errors.Is(err, domain.ErrOrderDeleted),
 			errors.Is(err, paymentDomain.ErrInsufficientPayment):
 			return httpx.BadRequest(c, err.Error())
+
+		case errors.Is(err, paymentDomain.ErrPaymentNotFound):
+			return httpx.NotFound(c, err.Error())
 
 		case errors.Is(err, domain.ErrUnauthorizedOrderAccess):
 			return httpx.Forbidden(c, err.Error())

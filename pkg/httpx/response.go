@@ -110,3 +110,17 @@ func UnprocessableEntity(c *fiber.Ctx, msg string) error {
 func NoContent(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// -----------------------------------------------------------------------------
+// 🔹 Structured Error Responses
+// -----------------------------------------------------------------------------
+
+// JSONErrorWithData sends a structured error response (e.g., validation or transition errors)
+func JSONErrorWithData[T any](c *fiber.Ctx, status int, message string, data T, err error) error {
+	return c.Status(status).JSON(APIResponse[T]{
+		Success: false,
+		Message: message,
+		Data:    data,
+		Error:   err.Error(),
+	})
+}

@@ -104,8 +104,6 @@ func (s *OrderStatusHistorySeeder) Seed(ctx context.Context) error {
 			if err != nil {
 				return fmt.Errorf("failed to seed order status history %s: %w", d.ID, err)
 			}
-		} else {
-			fmt.Println("exist")
 		}
 	}
 

@@ -1,5 +1,7 @@
 package types
 
+import "slices"
+
 type OrderStatus string
 
 const (
@@ -15,58 +17,72 @@ const (
 	OrderStatusCompleted        OrderStatus = "COMPLETED"          // Order closed and payment settled
 	OrderStatusCancelled        OrderStatus = "CANCELLED"          // Order cancelled before pickup
 	OrderStatusFailed           OrderStatus = "FAILED"             // Failed due to error (e.g., payment issue)
+	OrderStatusRefundRequested  OrderStatus = "REFUND_REQUESTED"   // Refund requested, waiting for approval
+	OrderStatusRefunded         OrderStatus = "REFUNDED"           // Refund approved and payment reversed
 	OrderStatusPreview          OrderStatus = "PREVIEW"            // Order preview before confirmation
 )
 
 var AllowedOrderTransitions = map[OrderStatus][]OrderStatus{
-	// Initial states
-	OrderStatusPreview: {OrderStatusPending, OrderStatusCancelled},
-	OrderStatusPending: {OrderStatusConfirmed, OrderStatusCancelled, OrderStatusFailed},
-
-	// Confirmed order can move to next steps
-	OrderStatusConfirmed: {
-		OrderStatusPickedUp,
-		OrderStatusCancelled,
-		OrderStatusFailed,
-	},
-
-	OrderStatusPickedUp: {
-		OrderStatusInWashing,
-		OrderStatusFailed,
-	},
-
-	OrderStatusInWashing: {
-		OrderStatusInDrying,
-		OrderStatusFailed,
-	},
-
-	OrderStatusInDrying: {
-		OrderStatusInIroning,
-		OrderStatusFailed,
-	},
-
-	OrderStatusInIroning: {
-		OrderStatusReadyForDelivery,
-		OrderStatusFailed,
-	},
-
-	OrderStatusReadyForDelivery: {
-		OrderStatusOutForDelivery,
-		OrderStatusFailed,
-	},
-
-	OrderStatusOutForDelivery: {
-		OrderStatusDelivered,
-		OrderStatusFailed,
-	},
-
+	OrderStatusPreview:          {OrderStatusPending, OrderStatusCancelled},
+	OrderStatusPending:          {OrderStatusConfirmed, OrderStatusCancelled, OrderStatusFailed},
+	OrderStatusConfirmed:        {OrderStatusPickedUp, OrderStatusCancelled, OrderStatusFailed},
+	OrderStatusPickedUp:         {OrderStatusInWashing, OrderStatusFailed},
+	OrderStatusInWashing:        {OrderStatusInDrying, OrderStatusFailed},
+	OrderStatusInDrying:         {OrderStatusInIroning, OrderStatusFailed},
+	OrderStatusInIroning:        {OrderStatusReadyForDelivery, OrderStatusFailed},
+	OrderStatusReadyForDelivery: {OrderStatusOutForDelivery, OrderStatusFailed},
+	OrderStatusOutForDelivery:   {OrderStatusDelivered, OrderStatusFailed},
 	OrderStatusDelivered: {
 		OrderStatusCompleted,
-		OrderStatusFailed,
+		OrderStatusRefundRequested, // allow refund request after delivery
 	},
+	OrderStatusCompleted: {
+		OrderStatusRefundRequested, // allow refund request even after completion
+	},
+	OrderStatusCancelled: {
+		OrderStatusRefundRequested, // allow refund request if payment was captured
+	},
+	OrderStatusFailed: {
+		OrderStatusRefundRequested, // failed payment could still require refund
+	},
+	OrderStatusRefundRequested: {
+		OrderStatusRefunded, // after processing
+	},
+	// ---- Terminal states ----
+	OrderStatusRefunded: {},
+}
 
-	// Terminal states
-	OrderStatusCompleted: {},
-	OrderStatusCancelled: {},
-	OrderStatusFailed:    {},
+func (s OrderStatus) CanTransitionTo(next OrderStatus) bool {
+	allowedNext, ok := AllowedOrderTransitions[s]
+	if !ok {
+		return false
+	}
+	return slices.Contains(allowedNext, next)
+}
+
+func (s OrderStatus) AllowedNextStatuses() []OrderStatus {
+	return AllowedOrderTransitions[s]
+}
+
+func MapOrderToPaymentStatus(orderStatus OrderStatus, current PaymentStatus) PaymentStatus {
+	switch orderStatus {
+	case OrderStatusConfirmed, OrderStatusCompleted:
+		return PaymentStatusPaid
+
+	case OrderStatusRefundRequested:
+		return PaymentStatusRefundRequested
+
+	case OrderStatusRefunded:
+		return PaymentStatusRefunded
+
+	case OrderStatusCancelled:
+		// If already paid, trigger refund request instead of direct cancel
+		if current == PaymentStatusPaid {
+			return PaymentStatusRefundRequested
+		}
+		return PaymentStatusCancelled
+
+	default:
+		return current
+	}
 }

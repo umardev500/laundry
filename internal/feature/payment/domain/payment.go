@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 
 	paymentMethodDomain "github.com/umardev500/laundry/internal/feature/paymentmethod/domain"
@@ -178,34 +179,25 @@ func (p *Payment) UpdateStatus(newStatus types.PaymentStatus) error {
 		return fmt.Errorf("payment status is already %s", newStatus)
 	}
 
-	switch newStatus {
-	case types.PaymentStatusPending:
-		// Only allow moving to pending from failed
-		if p.Status != types.PaymentStatusFailed {
-			return fmt.Errorf("cannot set payment status to pending from %s", p.Status)
-		}
-		p.Status = types.PaymentStatusPending
-		p.PaidAt = nil
+	if !p.Status.CanTransitionTo(newStatus) {
+		allowedStatuses := p.Status.AllowedNextStatuses()
 
-	case types.PaymentStatusPaid:
-		// Can only mark paid if currently pending
-		if p.Status != types.PaymentStatusPending {
-			return fmt.Errorf("cannot mark payment as paid from %s", p.Status)
-		}
+		return errors.NewErrInvalidStatusTransition(
+			string(p.Status),
+			string(newStatus),
+			allowedStatuses,
+		)
+	}
+
+	// Always update status
+	p.Status = newStatus
+
+	// Only mark PaidAt for paid status
+	if newStatus == types.PaymentStatusPaid {
 		now := time.Now()
-		p.Status = types.PaymentStatusPaid
 		p.PaidAt = &now
-
-	case types.PaymentStatusFailed:
-		// Can fail only from pending
-		if p.Status != types.PaymentStatusPending {
-			return fmt.Errorf("cannot mark payment as failed from %s", p.Status)
-		}
-		p.Status = types.PaymentStatusFailed
+	} else {
 		p.PaidAt = nil
-
-	default:
-		return fmt.Errorf("unsupported payment status: %s", newStatus)
 	}
 
 	return nil
@@ -227,9 +219,9 @@ func (p *Payment) IsDeleted() bool {
 }
 
 // BelongsToTenant checks whether the service belongs to the tenant in context.
-func (s *Payment) BelongsToTenant(ctx *appctx.Context) bool {
+func (p *Payment) BelongsToTenant(ctx *appctx.Context) bool {
 	if ctx.Scope() == appctx.ScopeTenant {
-		return ctx.TenantID() != nil && s.TenantID == ctx.TenantID()
+		return ctx.TenantID() != nil && p.TenantID == ctx.TenantID()
 	}
 	return true
 }

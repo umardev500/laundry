@@ -2,20 +2,28 @@ package errors
 
 import "fmt"
 
-// ErrInvalidStatusTransition represents an invalid order status change
-type ErrInvalidStatusTransition struct {
-	From string
-	To   string
+// ErrInvalidStatusTransition represents an invalid order status change.
+type ErrInvalidStatusTransition[T any] struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Allowed []T    `json:"allowed"`
 }
 
-func (e *ErrInvalidStatusTransition) Error() string {
-	return fmt.Sprintf("invalid status transition from %s to %s", e.From, e.To)
+func (e *ErrInvalidStatusTransition[T]) Error() string {
+	if len(e.Allowed) > 0 {
+		return fmt.Sprintf(
+			"invalid status transition from %s → %s",
+			e.From, e.To,
+		)
+	}
+	return fmt.Sprintf("invalid status transition from %s → %s", e.From, e.To)
 }
 
-// Helper function to create the error
-func NewErrInvalidStatusTransition(from, to string) error {
-	return &ErrInvalidStatusTransition{
-		From: from,
-		To:   to,
+// NewErrInvalidStatusTransition creates a detailed invalid transition error.
+func NewErrInvalidStatusTransition[T any](from, to string, allowed []T) error {
+	return &ErrInvalidStatusTransition[T]{
+		From:    from,
+		To:      to,
+		Allowed: allowed,
 	}
 }

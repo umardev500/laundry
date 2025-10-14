@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -179,6 +180,15 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 			return err
 		}
 
+		fmt.Println(p.Status, result.Status)
+		// Map payment → order status
+		newOrderStatus := types.MapPaymentToOrderStatus(p.Status, result.Status)
+
+		// Only update if status changed
+		if newOrderStatus != result.Status {
+			result.Status = newOrderStatus
+		}
+
 		// Update the order with the payment ID
 		result.PaymentID = &p.ID
 		_, err = s.repo.Update(newCtx, result)
@@ -214,19 +224,69 @@ func (s *orderService) FindByID(ctx *appctx.Context, id uuid.UUID, q *query.Orde
 
 // UpdateStatus implements contract.OrderService.
 func (s *orderService) UpdateStatus(ctx *appctx.Context, o *domain.Order) (*domain.Order, error) {
+	var updateOrder *domain.Order
+	var err error
+
 	order, err := s.findExisting(ctx, o.ID, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	order.UpdateStatus(o.Status)
+	if err := order.UpdateStatus(o.Status); err != nil {
+		return nil, err
+	}
 
-	return s.repo.Update(ctx, order)
+	err = s.client.WithTransaction(ctx, func(txCtx context.Context) error {
+		newCtx := appctx.New(txCtx)
+
+		updateOrder, err = s.repo.Update(newCtx, order)
+		if err != nil {
+			return err
+		}
+
+		// Find order by id include payment
+		updatedOrder, err := s.findExisting(newCtx, order.ID, &query.OrderQuery{
+			IncludePayment: true,
+		})
+		if err != nil {
+			return err
+		}
+
+		// --- sync with payment ---
+		if err := s.syncPaymentStatus(newCtx, updatedOrder, o.Status); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return updateOrder, nil
 }
 
 // -----------------------
 // Helper methods
 // -----------------------
+
+func (s *orderService) syncPaymentStatus(ctx *appctx.Context, order *domain.Order, status types.OrderStatus) error {
+	if order.Payment == nil {
+		return fmt.Errorf("payment is nil")
+	}
+
+	payment := order.Payment
+	var newPaymentStatus types.PaymentStatus = types.MapOrderToPaymentStatus(status, payment.Status)
+
+	//  Only update if different
+	if payment.Status != newPaymentStatus {
+		payment.Status = newPaymentStatus
+		_, err := s.paymentService.UpdateStatus(ctx, payment)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // findExisting ensures the payment exists, is not soft-deleted, and belongs to tenant
 func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error) {

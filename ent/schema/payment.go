@@ -34,8 +34,12 @@ func (Payment) Fields() []ent.Field {
 		field.Enum("status").
 			Values(
 				string(types.PaymentStatusPending),
+				string(types.PaymentStatusProcessing),
 				string(types.PaymentStatusPaid),
 				string(types.PaymentStatusFailed),
+				string(types.PaymentStatusCancelled),
+				string(types.PaymentStatusRefundRequested),
+				string(types.PaymentStatusRefunded),
 			).
 			Default(string(types.PaymentStatusPending)),
 

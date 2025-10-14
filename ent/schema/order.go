@@ -38,6 +38,8 @@ func (Order) Fields() []ent.Field {
 				string(types.OrderStatusCompleted),
 				string(types.OrderStatusCancelled),
 				string(types.OrderStatusFailed),
+				string(types.OrderStatusRefundRequested),
+				string(types.OrderStatusRefunded),
 			).
 			Default(string(types.OrderStatusPending)),
 

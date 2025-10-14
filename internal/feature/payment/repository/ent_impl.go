@@ -73,6 +73,10 @@ func (r *EntPaymentRepository) Update(ctx *appctx.Context, p *domain.Payment) (*
 
 // FindById returns a payment by its ID
 func (r *EntPaymentRepository) FindById(ctx *appctx.Context, id uuid.UUID, q *query.FindPaymentByIdQuery) (*domain.Payment, error) {
+	if q == nil {
+		q = &query.FindPaymentByIdQuery{}
+	}
+
 	conn := r.client.GetConn(ctx)
 
 	qb := conn.Payment.
@@ -87,6 +91,10 @@ func (r *EntPaymentRepository) FindById(ctx *appctx.Context, id uuid.UUID, q *qu
 		qb = qb.WithOrder(func(oq *ent.OrderQuery) {
 			oq.WithItems()
 		})
+	}
+
+	if !q.IncludeDeleted {
+		qb = qb.Where(payment.DeletedAtIsNil())
 	}
 
 	entPayment, err := qb.Only(ctx)

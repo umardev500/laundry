@@ -83,18 +83,19 @@ func (s *PaymentServiceImpl) Update(ctx *appctx.Context, p *domain.Payment) (*do
 }
 
 // UpdateStatus implements contract.Service.
-func (s *PaymentServiceImpl) UpdateStatus(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error) {
-	payment, err := s.findExisting(ctx, payment.ID)
+func (s *PaymentServiceImpl) UpdateStatus(ctx *appctx.Context, p *domain.Payment) (*domain.Payment, error) {
+	payment, err := s.findExisting(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Update status
-	err = payment.UpdateStatus(payment.Status)
+	err = payment.UpdateStatus(p.Status)
 	if err != nil {
 		return nil, err
 	}
 
+	payment.Status = p.Status
 	return s.repo.Update(ctx, payment)
 }
 

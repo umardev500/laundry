@@ -46,8 +46,8 @@ func (p *paymentToOrder) SyncOrder(ctx *appctx.Context, ord *orderDomain.Order, 
 		return fmt.Errorf("unsupported payment status: %s", pay.Status)
 	}
 
-	err := p.client.WithTransaction(ctx, func(ctx context.Context) error {
-		newCtx := appctx.New(ctx)
+	err := p.client.WithTransaction(ctx, func(txCtx context.Context) error {
+		newCtx := appctx.New(txCtx)
 
 		// Call OrderService to update the status
 		ord.Status = newStatus
