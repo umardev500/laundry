@@ -203,8 +203,6 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 		// Assign the payment details from the created payment
 		result.Payment = p
 
-		fmt.Println(result.ID, result.Status)
-
 		// Create order status history
 		_, err = s.statusHistoryService.Create(newCtx, &orderStatusHistoryDomain.OrderStatusHistory{
 			OrderID: result.ID,
@@ -234,6 +232,8 @@ func (s *orderService) List(ctx *appctx.Context, q *query.ListOrderQuery) (*pagi
 
 // FindByID implements contract.OrderService.
 func (s *orderService) FindByID(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuery) (*domain.Order, error) {
+	q.Normalize()
+
 	return s.findExisting(ctx, id, q)
 }
 
@@ -271,6 +271,16 @@ func (s *orderService) UpdateStatus(ctx *appctx.Context, o *domain.Order) (*doma
 		if err := s.syncPaymentStatus(newCtx, updatedOrder, o.Status); err != nil {
 			return err
 		}
+
+		// Create order status history
+		_, err = s.statusHistoryService.Create(newCtx, &orderStatusHistoryDomain.OrderStatusHistory{
+			OrderID: updatedOrder.ID,
+			Status:  updatedOrder.Status,
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {

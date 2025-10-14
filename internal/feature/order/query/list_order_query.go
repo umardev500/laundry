@@ -14,17 +14,25 @@ const (
 	OrderTotalAmountDesc OrderBy = "total_desc"
 )
 
+type StatusesOrder string
+
+const (
+	StatusesOrderAsc  StatusesOrder = "asc"
+	StatusesOrderDesc StatusesOrder = "desc"
+)
+
 // ListOrderQuery defines filtering, sorting, and pagination for order listing.
 type ListOrderQuery struct {
 	pagination.Query
-	Search               string  `query:"search"`
-	Status               *string `query:"status"`
-	IncludeDeleted       bool    `query:"include_deleted"`
-	IncludeItems         bool    `query:"include_items"`
-	IncludePayment       bool    `query:"include_payment"`
-	IncludePaymentMethod bool    `query:"include_payment_method"`
-	IncludeStatuses      bool    `query:"include_statuses"`
-	Order                OrderBy `query:"order"`
+	Search               string        `query:"search"`
+	Status               *string       `query:"status"`
+	IncludeDeleted       bool          `query:"include_deleted"`
+	IncludeItems         bool          `query:"include_items"`
+	IncludePayment       bool          `query:"include_payment"`
+	IncludePaymentMethod bool          `query:"include_payment_method"`
+	IncludeStatuses      bool          `query:"include_statuses"`
+	StatusOrder          StatusesOrder `query:"status_order"`
+	Order                OrderBy       `query:"order"`
 }
 
 // Normalize applies default pagination and sort values.
@@ -32,5 +40,9 @@ func (q *ListOrderQuery) Normalize() {
 	q.Query.Normalize(1, 10)
 	if q.Order == "" {
 		q.Order = OrderCreatedAtDesc
+	}
+
+	if q.StatusOrder == "" {
+		q.StatusOrder = StatusesOrderAsc
 	}
 }

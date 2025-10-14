@@ -39,9 +39,14 @@ func (r *entImpl) FindById(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuer
 	}
 
 	// Conditionally preload status
+	// Conditionally preload status
 	if q.IncludeStatuses {
+		orderFunc := ent.Desc(orderstatushistory.FieldCreatedAt)
+		if q.StatusOrder == query.StatusesOrderAsc {
+			orderFunc = ent.Asc(orderstatushistory.FieldCreatedAt)
+		}
 		qb = qb.WithStatusHistory(func(shq *ent.OrderStatusHistoryQuery) {
-			shq.Order(ent.Asc(orderstatushistory.FieldCreatedAt))
+			shq.Order(orderFunc)
 		})
 	}
 
@@ -134,8 +139,12 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListOrderQuery) (*paginatio
 
 	// Conditionally preload status
 	if q.IncludeStatuses {
+		orderFunc := ent.Desc(orderstatushistory.FieldCreatedAt)
+		if q.StatusOrder == query.StatusesOrderAsc {
+			orderFunc = ent.Asc(orderstatushistory.FieldCreatedAt)
+		}
 		qb = qb.WithStatusHistory(func(shq *ent.OrderStatusHistoryQuery) {
-			shq.Order(ent.Asc(orderstatushistory.FieldCreatedAt))
+			shq.Order(orderFunc)
 		})
 	}
 

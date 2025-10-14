@@ -57,7 +57,7 @@ func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {
 	}
 
 	// Apply new status
-	o.Status = newStatus
+	o.Status = newStatus.Normalize()
 
 	return nil
 }

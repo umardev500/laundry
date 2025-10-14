@@ -1,6 +1,9 @@
 package types
 
-import "slices"
+import (
+	"slices"
+	"strings"
+)
 
 type OrderStatus string
 
@@ -57,11 +60,15 @@ func (s OrderStatus) CanTransitionTo(next OrderStatus) bool {
 	if !ok {
 		return false
 	}
-	return slices.Contains(allowedNext, next)
+	return slices.Contains(allowedNext, next.Normalize())
 }
 
 func (s OrderStatus) AllowedNextStatuses() []OrderStatus {
 	return AllowedOrderTransitions[s]
+}
+
+func (e OrderStatus) Normalize() OrderStatus {
+	return OrderStatus(strings.ToUpper(string(e)))
 }
 
 func MapOrderToPaymentStatus(orderStatus OrderStatus, current PaymentStatus) PaymentStatus {
@@ -76,10 +83,10 @@ func MapOrderToPaymentStatus(orderStatus OrderStatus, current PaymentStatus) Pay
 		return PaymentStatusRefunded
 
 	case OrderStatusCancelled:
-		// If already paid, trigger refund request instead of direct cancel
-		if current == PaymentStatusPaid {
-			return PaymentStatusRefundRequested
-		}
+		// // If already paid, trigger refund request instead of direct cancel
+		// if current == PaymentStatusPaid {
+		// 	return PaymentStatusRefundRequested
+		// }
 		return PaymentStatusCancelled
 
 	default:
