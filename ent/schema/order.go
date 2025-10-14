@@ -82,5 +82,10 @@ func (Order) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.Restrict),
 			),
+
+		edge.To("status_history", OrderStatus.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }

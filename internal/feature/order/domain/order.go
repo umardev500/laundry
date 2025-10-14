@@ -49,7 +49,7 @@ func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {
 		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
 	}
 
-	// Check alloed transitions
+	// Check allowed transitions
 	allowedNext, ok := types.AllowedOrderTransitions[o.Status]
 	if !ok {
 		return errors.NewErrInvalidStatusTransition(string(o.Status), string(newStatus))
