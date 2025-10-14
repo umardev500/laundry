@@ -17,6 +17,8 @@ import (
 	"github.com/umardev500/laundry/pkg/types"
 
 	orderItemContract "github.com/umardev500/laundry/internal/feature/orderitem/contract"
+	orderStatusHistoryContract "github.com/umardev500/laundry/internal/feature/orderstatushistory/contract"
+	orderStatusHistoryDomain "github.com/umardev500/laundry/internal/feature/orderstatushistory/domain"
 	paymentContract "github.com/umardev500/laundry/internal/feature/payment/contract"
 	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
 	paymentMethodContract "github.com/umardev500/laundry/internal/feature/paymentmethod/contract"
@@ -31,6 +33,7 @@ type orderService struct {
 	client               *entdb.Client
 	paymentService       paymentContract.Service
 	paymentMethodService paymentMethodContract.Service
+	statusHistoryService orderStatusHistoryContract.StatusHistoryService
 }
 
 // NewOrderService creates a new OrderService.
@@ -41,6 +44,7 @@ func NewOrderService(
 	client *entdb.Client,
 	paymentService paymentContract.Service,
 	paymentMethodService paymentMethodContract.Service,
+	statusHistoryService orderStatusHistoryContract.StatusHistoryService,
 ) contract.OrderService {
 	return &orderService{
 		repo:                 repo,
@@ -49,6 +53,7 @@ func NewOrderService(
 		client:               client,
 		paymentService:       paymentService,
 		paymentMethodService: paymentMethodService,
+		statusHistoryService: statusHistoryService,
 	}
 }
 
@@ -180,7 +185,6 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 			return err
 		}
 
-		fmt.Println(p.Status, result.Status)
 		// Map payment → order status
 		newOrderStatus := types.MapPaymentToOrderStatus(p.Status, result.Status)
 
@@ -198,6 +202,17 @@ func (s *orderService) GuestOrder(ctx *appctx.Context, o *domain.Order) (*domain
 
 		// Assign the payment details from the created payment
 		result.Payment = p
+
+		fmt.Println(result.ID, result.Status)
+
+		// Create order status history
+		_, err = s.statusHistoryService.Create(newCtx, &orderStatusHistoryDomain.OrderStatusHistory{
+			OrderID: result.ID,
+			Status:  result.Status,
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
