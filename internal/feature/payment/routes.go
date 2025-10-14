@@ -20,6 +20,7 @@ func (r *Routes) RegisterRoutes(router fiber.Router) {
 
 	group.Use(middleware.CheckAuth(r.config))
 	group.Get("/", r.handler.List)
+	group.Get("/:id", r.handler.FindById)
 }
 
 func NewRoutes(h *handler.Handler, config *config.Config) *Routes {

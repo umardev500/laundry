@@ -16,7 +16,7 @@ type Repository interface {
 	Update(ctx *appctx.Context, p *domain.Payment) (*domain.Payment, error)
 
 	// FindById returns a payment by its ID.
-	FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error)
+	FindById(ctx *appctx.Context, id uuid.UUID, q *query.FindPaymentByIdQuery) (*domain.Payment, error)
 
 	// Delete deletes a payment by its ID.
 	Delete(ctx *appctx.Context, id uuid.UUID) error

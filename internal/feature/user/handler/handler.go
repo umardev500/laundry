@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/user/contract"
 	"github.com/umardev500/laundry/internal/feature/user/domain"
@@ -12,8 +13,6 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user/query"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/validator"
-
-	pkgQuery "github.com/umardev500/laundry/pkg/query"
 )
 
 type Handler struct {
@@ -58,18 +57,13 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	uid, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
-	err = h.service.Delete(ctx, uid)
+	err = h.service.Delete(ctx, id)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserDeleted) {
 			return httpx.Forbidden(c, err.Error())
@@ -111,18 +105,13 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	uid, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
-	user, err := req.ToDomainUserWithID(uid)
+	user, err := req.ToDomainUserWithID(id)
 	if err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
@@ -201,18 +190,13 @@ func (h *Handler) List(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Purge(c *fiber.Ctx) error {
-	var q pkgQuery.GetByIDQuery
-	if err := c.ParamsParser(&q); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	uid, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return httpx.BadRequest(c, err.Error())
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
-	err = h.service.Purge(ctx, uid)
+	err = h.service.Purge(ctx, id)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return httpx.NotFound(c, err.Error())

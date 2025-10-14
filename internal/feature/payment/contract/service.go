@@ -20,7 +20,7 @@ type Service interface {
 	UpdateStatus(ctx *appctx.Context, payment *domain.Payment) (*domain.Payment, error)
 
 	// GetByID retrieves a payment by its ID
-	GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error)
+	GetByID(ctx *appctx.Context, id uuid.UUID, q *query.FindPaymentByIdQuery) (*domain.Payment, error)
 
 	// Delete a payment by its ID
 	Delete(ctx *appctx.Context, id uuid.UUID) error

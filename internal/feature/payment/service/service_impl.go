@@ -99,7 +99,7 @@ func (s *PaymentServiceImpl) UpdateStatus(ctx *appctx.Context, payment *domain.P
 }
 
 // GetByID retrieves a payment by its ID
-func (s *PaymentServiceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error) {
+func (s *PaymentServiceImpl) GetByID(ctx *appctx.Context, id uuid.UUID, q *query.FindPaymentByIdQuery) (*domain.Payment, error) {
 	return s.findExisting(ctx, id)
 }
 
@@ -147,9 +147,9 @@ func (s *PaymentServiceImpl) MarkPaid(ctx *appctx.Context, id uuid.UUID, receive
 
 // findExisting ensures the payment exists, is not soft-deleted, and belongs to tenant
 func (s *PaymentServiceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error) {
-	p, err := s.repo.FindById(ctx, id)
+	p, err := s.repo.FindById(ctx, id, nil)
 	if err != nil {
-		if !ent.IsNotFound(err) {
+		if ent.IsNotFound(err) {
 			return nil, domain.ErrPaymentNotFound
 		}
 		return nil, err
@@ -168,7 +168,7 @@ func (s *PaymentServiceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*d
 
 // findAllowDeleted fetches a payment regardless of deleted status but checks tenant ownership
 func (s *PaymentServiceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error) {
-	p, err := s.repo.FindById(ctx, id)
+	p, err := s.repo.FindById(ctx, id, nil)
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			return nil, domain.ErrPaymentNotFound

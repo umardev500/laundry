@@ -72,8 +72,24 @@ func (r *EntPaymentRepository) Update(ctx *appctx.Context, p *domain.Payment) (*
 }
 
 // FindById returns a payment by its ID
-func (r *EntPaymentRepository) FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Payment, error) {
-	entPayment, err := r.client.Client.Payment.Get(ctx, id)
+func (r *EntPaymentRepository) FindById(ctx *appctx.Context, id uuid.UUID, q *query.FindPaymentByIdQuery) (*domain.Payment, error) {
+	conn := r.client.GetConn(ctx)
+
+	qb := conn.Payment.
+		Query().
+		Where(payment.IDEQ(id))
+
+	// Apply scoping based on context
+	qb = r.applyScope(ctx, qb)
+
+	// Check for include ref
+	if q != nil && q.IncludeRef {
+		qb = qb.WithOrder(func(oq *ent.OrderQuery) {
+			oq.WithItems()
+		})
+	}
+
+	entPayment, err := qb.Only(ctx)
 	if err != nil {
 		return nil, err
 	}
