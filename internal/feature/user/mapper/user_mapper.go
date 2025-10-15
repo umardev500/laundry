@@ -5,6 +5,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user/domain"
 	"github.com/umardev500/laundry/internal/feature/user/dto"
 	"github.com/umardev500/laundry/pkg/pagination"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // ToDomainUser converts and ent.User to a domain.User
@@ -17,7 +18,7 @@ func ToDomainUser(e *ent.User) *domain.User {
 		ID:        e.ID,
 		Email:     e.Email,
 		Password:  e.Password,
-		Status:    domain.Status(*e.Status),
+		Status:    types.UserStatus(*e.Status),
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,

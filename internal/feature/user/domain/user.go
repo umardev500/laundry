@@ -4,21 +4,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-)
-
-type Status string
-
-const (
-	StatusActive    Status = "active"
-	StatusDeleted   Status = "deleted"
-	StatusSuspended Status = "suspended"
+	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 type User struct {
 	ID        uuid.UUID
 	Email     string
 	Password  string
-	Status    Status
+	Status    types.UserStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -37,7 +31,7 @@ func (u *User) Update(email, password string) {
 // SoftDelete marks a user as deleted without removing the record.
 func (u *User) SoftDelete() {
 	now := time.Now().UTC()
-	u.Status = StatusDeleted
+	u.Status = types.UserStatusDeleted
 	u.DeletedAt = &now
 }
 
@@ -47,14 +41,19 @@ func (u *User) IsDeleted() bool {
 }
 
 // SetStatus updates the user's status with validation.
-func (u *User) SetStatus(status Status) error {
+func (u *User) SetStatus(status types.UserStatus) error {
+	status = status.Normalize()
 	if u.Status == status {
-		return ErrStatusUnchanged
+		return types.ErrStatusUnchanged
 	}
 
 	// Optional rule: prevent reactivating deleted users.
-	if u.IsDeleted() && status != StatusDeleted {
-		return ErrInvalidStatusTransition
+	if !u.Status.CanTransitionTo(status) {
+		return errors.NewErrInvalidStatusTransition(
+			string(u.Status),
+			string(status),
+			u.Status.AllowedNextStatuses(),
+		)
 	}
 
 	u.Status = status

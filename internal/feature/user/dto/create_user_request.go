@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/umardev500/laundry/internal/feature/user/domain"
+	"github.com/umardev500/laundry/pkg/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,6 +24,6 @@ func (r *CreateUserRequest) ToDomainUser() (*domain.User, error) {
 	return &domain.User{
 		Email:    r.Email,
 		Password: string(hashed),
-		Status:   domain.StatusActive,
+		Status:   types.UserStatusActive,
 	}, nil
 }

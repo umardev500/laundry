@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // User holds the schema definition for the User entity.
@@ -21,7 +22,9 @@ func (User) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.String("email").Unique().NotEmpty(),
 		field.String("password").Sensitive().NotEmpty(),
-		field.Enum("status").Values("active", "suspended", "deleted").Default("active").Nillable(),
+		field.Enum("status").
+			Values(string(types.UserStatusActive), string(types.UserStatusSuspended), string(types.UserStatusDeleted)).
+			Default(string(types.UserStatusActive)).Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),

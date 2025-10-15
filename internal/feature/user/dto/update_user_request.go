@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/feature/user/domain"
+	"github.com/umardev500/laundry/pkg/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,6 +26,6 @@ func (r *UpdateUserRequest) ToDomainUserWithID(uid uuid.UUID) (*domain.User, err
 		ID:       uid,
 		Email:    r.Email,
 		Password: string(hashed),
-		Status:   domain.StatusActive,
+		Status:   types.UserStatusActive,
 	}, nil
 }

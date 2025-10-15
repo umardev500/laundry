@@ -91,13 +91,17 @@ func (s *serviceImpl) UpdateStatus(ctx *appctx.Context, u *domain.User) (*domain
 
 // Purge implements contract.Service.
 func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
-	user, err := s.findExistingUser(ctx, id)
+	user, err := s.findAllowDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	return s.repo.Delete(ctx, user.ID)
 }
+
+// -------------------------
+// Helpers
+// -------------------------
 
 // findExistingUser returns any user that is not deleted.
 func (s *serviceImpl) findExistingUser(ctx *appctx.Context, id uuid.UUID) (*domain.User, error) {
@@ -111,6 +115,19 @@ func (s *serviceImpl) findExistingUser(ctx *appctx.Context, id uuid.UUID) (*doma
 
 	if user.IsDeleted() {
 		return nil, domain.ErrUserDeleted
+	}
+
+	return user, nil
+}
+
+// findAllowDeleted fetches a service unit that may already be deleted, but still checks tenant ownership.
+func (s *serviceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.User, error) {
+	user, err := s.repo.FindById(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, domain.ErrUserNotFound
+		}
+		return nil, err
 	}
 
 	return user, nil
