@@ -44,6 +44,6 @@ func (q *UpdateStatusQuery) Validate() error {
 func (q *UpdateStatusQuery) ToDomainTenantWithID(uid uuid.UUID) *domain.Tenant {
 	return &domain.Tenant{
 		ID:     uid,
-		Status: types.Status(q.Status),
+		Status: types.TenantStatus(q.Status),
 	}
 }

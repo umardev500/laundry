@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -12,7 +13,7 @@ type Tenant struct {
 	Name      string
 	Phone     string
 	Email     string
-	Status    types.Status
+	Status    types.TenantStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -31,7 +32,7 @@ func (t *Tenant) Update(name, email string) {
 // SoftDelete marks a tenant as deleted without removing the record.
 func (t *Tenant) SoftDelete() {
 	now := time.Now().UTC()
-	t.Status = types.StatusDeleted
+	t.Status = types.TenantStatusDeleted
 	t.DeletedAt = &now
 }
 
@@ -41,13 +42,18 @@ func (t *Tenant) IsDeleted() bool {
 }
 
 // SetStatus updates the tenant's status with validation.
-func (t *Tenant) SetStatus(status types.Status) error {
+func (t *Tenant) SetStatus(status types.TenantStatus) error {
 	if t.Status == status {
-		return ErrStatusUnchanged
+		return types.ErrStatusUnchanged
 	}
 
-	if t.IsDeleted() && status != types.StatusDeleted {
-		return ErrInvalidStatusTransition
+	if !t.Status.CanTransitionTo(status) {
+		allowedStatuses := t.Status.AllowedNextStatuses()
+		return errors.NewErrInvalidStatusTransition(
+			string(t.Status),
+			string(status),
+			allowedStatuses,
+		)
 	}
 
 	t.Status = status

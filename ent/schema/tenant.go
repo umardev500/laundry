@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // Tenant holds the schema definition for the Tenant entity.
@@ -22,7 +23,9 @@ func (Tenant) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("phone").NotEmpty(),
 		field.String("email").NotEmpty().Unique(),
-		field.Enum("status").Values("active", "suspended", "deleted").Default("active").Nillable(),
+		field.Enum("status").
+			Values(string(types.TenantStatusActive), string(types.TenantStatusSuspended), string(types.TenantStatusDeleted)).
+			Default(string(types.TenantStatusActive)).Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),

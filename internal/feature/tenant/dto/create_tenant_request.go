@@ -20,6 +20,6 @@ func (r *CreateTenantRequest) ToDomain() (*domain.Tenant, error) {
 		Name:   r.Name,
 		Email:  r.Email,
 		Phone:  r.Phone,
-		Status: types.Status(r.Status),
+		Status: types.TenantStatus(r.Status),
 	}, nil
 }

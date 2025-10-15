@@ -55,7 +55,7 @@ func (Service) Edges() []ent.Edge {
 
 		edge.To("items", OrderItem.Type).
 			Annotations(
-				entsql.OnDelete(entsql.SetNull),
+				entsql.OnDelete(entsql.Cascade),
 			),
 	}
 }

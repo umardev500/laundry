@@ -12,6 +12,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/tenant/mapper"
 	"github.com/umardev500/laundry/internal/feature/tenant/query"
 	"github.com/umardev500/laundry/pkg/httpx"
+	"github.com/umardev500/laundry/pkg/types"
 	"github.com/umardev500/laundry/pkg/validator"
 )
 
@@ -106,7 +107,7 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 			return httpx.NotFound(c, err.Error())
 		case errors.Is(err, domain.ErrTenantDeleted):
 			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrStatusUnchanged):
+		case errors.Is(err, types.ErrStatusUnchanged):
 			return httpx.JSONWithMessage[*dto.TenantResponse](c, fiber.StatusOK, nil, err.Error())
 		default:
 			return httpx.InternalServerError(c, err.Error())
