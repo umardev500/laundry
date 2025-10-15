@@ -134,6 +134,8 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 	res, err := h.service.UpdateStatus(ctx, m)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineNotFound):
 			return httpx.NotFound(c, err.Error())
 		case errors.Is(err, domain.ErrMachineDeleted):
