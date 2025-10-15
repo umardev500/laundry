@@ -61,7 +61,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	data, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.JSONPaginated(

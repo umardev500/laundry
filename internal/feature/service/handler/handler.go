@@ -1,14 +1,11 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/service/contract"
-	"github.com/umardev500/laundry/internal/feature/service/domain"
 	"github.com/umardev500/laundry/internal/feature/service/dto"
 	"github.com/umardev500/laundry/internal/feature/service/mapper"
 	"github.com/umardev500/laundry/internal/feature/service/query"
@@ -45,12 +42,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 	res, err := h.service.Create(ctx, d)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceAlreadyExists):
-			return httpx.Conflict(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(res))
@@ -69,7 +61,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	page, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceError(c, err)
 	}
 
 	return httpx.JSONPaginated(c, fiber.StatusOK, mapper.ToResponsePage(page).Data, httpx.NewPagination(q.Page, q.Limit, page.Total))
@@ -86,14 +78,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 	res, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
@@ -125,14 +110,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 	res, err := h.service.Update(ctx, d)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
@@ -148,14 +126,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 
 	if err := h.service.Delete(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -171,12 +142,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 
 	if err := h.service.Purge(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceError(c, err)
 	}
 
 	return httpx.NoContent(c)

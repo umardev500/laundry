@@ -1,27 +1,21 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/ent"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/order/contract"
-	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/dto"
 	"github.com/umardev500/laundry/internal/feature/order/mapper"
 	"github.com/umardev500/laundry/internal/feature/order/query"
 	"github.com/umardev500/laundry/pkg/httpx"
-	"github.com/umardev500/laundry/pkg/types"
 	"github.com/umardev500/laundry/pkg/utils"
 	"github.com/umardev500/laundry/pkg/validator"
 
 	historyContract "github.com/umardev500/laundry/internal/feature/orderstatushistory/contract"
 	historyMapper "github.com/umardev500/laundry/internal/feature/orderstatushistory/mapper"
 	historyQuery "github.com/umardev500/laundry/internal/feature/orderstatushistory/query"
-	paymentDomain "github.com/umardev500/laundry/internal/feature/payment/domain"
-	errorsPkg "github.com/umardev500/laundry/pkg/errors"
 )
 
 type Handler struct {
@@ -57,16 +51,7 @@ func (h *Handler) FindByID(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.FindByID(ctx, id, &q)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrOrderNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrOrderDeleted):
-			return httpx.BadRequest(c, err.Error())
-		case errors.Is(err, domain.ErrUnauthorizedOrderAccess):
-			return httpx.Forbidden(c, err.Error())
-		}
-
-		return httpx.InternalServerError(c, err.Error())
+		return handleOrderError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(result))
@@ -95,27 +80,7 @@ func (h *Handler) GuestOrder(c *fiber.Ctx) error {
 
 	result, err := h.service.GuestOrder(ctx, data)
 	if err != nil {
-		var svcErr *domain.ServiceUnavailableError
-		isServiceUnavailable := errors.As(err, &svcErr)
-
-		switch {
-		case isServiceUnavailable,
-			errors.Is(err, domain.ErrOrderItemsRequired),
-			errors.Is(err, domain.ErrGuestEmailOrPhoneRequired),
-			errors.Is(err, domain.ErrOrderNotFound),
-			errors.Is(err, domain.ErrOrderDeleted),
-			errors.Is(err, paymentDomain.ErrInsufficientPayment):
-			return httpx.BadRequest(c, err.Error())
-
-		case errors.Is(err, paymentDomain.ErrPaymentNotFound):
-			return httpx.NotFound(c, err.Error())
-
-		case errors.Is(err, domain.ErrUnauthorizedOrderAccess):
-			return httpx.Forbidden(c, err.Error())
-
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleOrderError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(result))
@@ -140,7 +105,7 @@ func (h *Handler) History(c *fiber.Ctx) error {
 
 	page, err := h.historyService.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleOrderError(c, err)
 	}
 
 	return httpx.JSONPaginated(
@@ -163,7 +128,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleOrderError(c, err)
 	}
 
 	// Convert domain orders to DTOs
@@ -195,12 +160,7 @@ func (h *Handler) Preview(c *fiber.Ctx) error {
 
 	result, err := h.service.Preview(ctx, data)
 	if err != nil {
-		switch e := err.(type) {
-		case *domain.ServiceUnavailableError:
-			return httpx.BadRequest(c, e.Error())
-		}
-
-		return httpx.InternalServerError(c, err.Error())
+		return handleOrderError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(result))
@@ -225,29 +185,8 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 	}
 
 	res, err := h.service.UpdateStatus(ctx, m)
-
 	if err != nil {
-		var transitionErr *errorsPkg.ErrInvalidStatusTransition[types.OrderStatus]
-		isTransitionError := errors.As(err, &transitionErr)
-
-		switch {
-		case isTransitionError:
-			return httpx.JSONErrorWithData(
-				c,
-				fiber.StatusBadRequest,
-				"invalid status transition",
-				transitionErr,
-				err,
-			)
-		case errors.Is(err, domain.ErrOrderNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrOrderDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, types.ErrStatusUnchanged):
-			return httpx.JSONWithMessage[*dto.OrderResponse](c, fiber.StatusOK, nil, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleOrderError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
