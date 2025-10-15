@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 // PlatformUser holds the schema definition for the PlatformUser entity.
@@ -20,7 +21,9 @@ func (PlatformUser) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("user_id", uuid.UUID{}).Immutable().Unique(),
-		field.Enum("status").Values("active", "suspended", "deleted").Default("active").Nillable(),
+		field.Enum("status").
+			Values(string(types.PlatformUserStatusActive), string(types.PlatformUserStatusSuspended), string(types.PlatformUserStatusDeleted)).
+			Default(string(types.PlatformUserStatusActive)).Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),

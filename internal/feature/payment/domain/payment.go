@@ -175,7 +175,7 @@ func (p *Payment) UpdateStatus(newStatus types.PaymentStatus) error {
 	}
 
 	// Prevent updating to the same status
-	if p.Status == newStatus {
+	if p.Status == newStatus.Normalize() {
 		return fmt.Errorf("payment status is already %s", newStatus)
 	}
 
@@ -184,13 +184,13 @@ func (p *Payment) UpdateStatus(newStatus types.PaymentStatus) error {
 
 		return errors.NewErrInvalidStatusTransition(
 			string(p.Status),
-			string(newStatus),
+			string(newStatus.Normalize()),
 			allowedStatuses,
 		)
 	}
 
 	// Always update status
-	p.Status = newStatus
+	p.Status = newStatus.Normalize()
 
 	// Only mark PaidAt for paid status
 	if newStatus == types.PaymentStatusPaid {

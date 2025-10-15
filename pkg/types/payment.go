@@ -2,6 +2,7 @@ package types
 
 import (
 	"slices"
+	"strings"
 )
 
 // PaymentType is the type of payment
@@ -24,13 +25,13 @@ const (
 type PaymentStatus string
 
 const (
-	PaymentStatusPending         PaymentStatus = "pending"          // waiting for payment
-	PaymentStatusProcessing      PaymentStatus = "processing"       // payment is being processed
-	PaymentStatusPaid            PaymentStatus = "paid"             // payment completed successfully
-	PaymentStatusFailed          PaymentStatus = "failed"           // payment failed
-	PaymentStatusCancelled       PaymentStatus = "cancelled"        // payment cancelled before completion
-	PaymentStatusRefundRequested PaymentStatus = "refund_requested" // refund requested, awaiting processing
-	PaymentStatusRefunded        PaymentStatus = "refunded"         // refund completed
+	PaymentStatusPending         PaymentStatus = "PENDING"          // waiting for payment
+	PaymentStatusProcessing      PaymentStatus = "PROCESSING"       // payment is being processed
+	PaymentStatusPaid            PaymentStatus = "PAID"             // payment completed successfully
+	PaymentStatusFailed          PaymentStatus = "FAILED"           // payment failed
+	PaymentStatusCancelled       PaymentStatus = "CANCELLED"        // payment cancelled before completion
+	PaymentStatusRefundRequested PaymentStatus = "REFUND_REQUESTED" // refund requested, awaiting processing
+	PaymentStatusRefunded        PaymentStatus = "REFUNDED"         // refund completed
 )
 
 // AllowedPaymentTransitions defines valid payment state changes.
@@ -74,11 +75,15 @@ func (s PaymentStatus) CanTransitionTo(next PaymentStatus) bool {
 	if !ok {
 		return false
 	}
-	return slices.Contains(allowedNext, next)
+	return slices.Contains(allowedNext, next.Normalize())
 }
 
 func (s PaymentStatus) AllowedNextStatuses() []PaymentStatus {
 	return AllowedPaymentTransitions[s]
+}
+
+func (e PaymentStatus) Normalize() PaymentStatus {
+	return PaymentStatus(strings.ToUpper(string(e)))
 }
 
 // MapPaymentToOrderStatus maps payment status → appropriate order status

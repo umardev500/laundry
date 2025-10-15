@@ -56,11 +56,12 @@ var AllowedOrderTransitions = map[OrderStatus][]OrderStatus{
 }
 
 func (s OrderStatus) CanTransitionTo(next OrderStatus) bool {
+	nextNormalize := next.Normalize()
 	allowedNext, ok := AllowedOrderTransitions[s]
 	if !ok {
 		return false
 	}
-	return slices.Contains(allowedNext, next.Normalize())
+	return slices.Contains(allowedNext, nextNormalize)
 }
 
 func (s OrderStatus) AllowedNextStatuses() []OrderStatus {

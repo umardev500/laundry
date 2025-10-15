@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/platformuser/contract"
-	"github.com/umardev500/laundry/internal/feature/platformuser/domain"
 	"github.com/umardev500/laundry/internal/feature/platformuser/dto"
 	"github.com/umardev500/laundry/internal/feature/platformuser/mapper"
 	"github.com/umardev500/laundry/internal/feature/platformuser/query"
@@ -46,12 +43,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 	result, err := h.service.Create(ctx, pu)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPlatformUserAlreadyExists):
-			return httpx.Conflict(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handlePlatformUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToPlatformUserResponse(result))
@@ -67,14 +59,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPlatformUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrPlatformUserDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handlePlatformUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToPlatformUserResponse(result))
@@ -87,31 +72,17 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
-	if err := q.Validate(); err != nil {
-		return httpx.BadRequest(c, err.Error())
-	}
-
-	id, err := q.UUID()
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}
 
 	ctx := appctx.New(c.UserContext())
-	pu := q.ToDomainPlatformUserWithID(id)
+	pu := q.ToDomain(id)
 
 	result, err := h.service.UpdateStatus(ctx, pu)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPlatformUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrPlatformUserDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrStatusUnchanged):
-			// Idempotent: nothing changed, still OK
-			return httpx.JSONWithMessage[*dto.PlatformUserResponse](c, fiber.StatusOK, nil, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handlePlatformUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToPlatformUserResponse(result))
@@ -127,14 +98,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Delete(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPlatformUserDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrPlatformUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handlePlatformUserError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -150,12 +114,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Purge(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPlatformUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handlePlatformUserError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -172,7 +131,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handlePlatformUserError(c, err)
 	}
 
 	dtoPage := mapper.ToPlatformUserResponsePage(result)

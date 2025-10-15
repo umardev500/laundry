@@ -8,11 +8,21 @@ import (
 	"github.com/umardev500/laundry/internal/feature/machine/dto"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/types"
+
+	errorsPkg "github.com/umardev500/laundry/pkg/errors"
 )
 
 // handleMachineError centralizes HTTP error mapping for machine module
 func handleMachineError(c *fiber.Ctx, err error) error {
 	switch {
+	case errorsPkg.IsInvalidTransitionErr[types.MachineStatus](err):
+		return httpx.JSONErrorWithData(
+			c,
+			fiber.StatusBadRequest,
+			"invalid status transition",
+			err,
+			err,
+		)
 	case errors.Is(err, domain.ErrMachineDeleted),
 		errors.Is(err, domain.ErrUnauthorizedMachineAccess):
 		return httpx.Forbidden(c, err.Error())

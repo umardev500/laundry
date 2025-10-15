@@ -4,13 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
 type PlatformUser struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
-	Status    types.Status
+	Status    types.PlatformUserStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -19,7 +20,7 @@ type PlatformUser struct {
 // SoftDelete marks a user as deleted without removing the record.
 func (u *PlatformUser) SoftDelete() {
 	now := time.Now().UTC()
-	u.Status = types.StatusDeleted
+	u.Status = types.PlatformUserStatusDeleted
 	u.DeletedAt = &now
 }
 
@@ -27,14 +28,19 @@ func (p *PlatformUser) IsDeleted() bool {
 	return p.DeletedAt != nil
 }
 
-func (p *PlatformUser) SetStatus(status types.Status) error {
+func (p *PlatformUser) SetStatus(status types.PlatformUserStatus) error {
+	status = status.Normalize()
+
 	if p.Status == status {
-		return ErrStatusUnchanged
+		return types.ErrStatusUnchanged
 	}
 
-	// Optional rule: prevent reactivating deleted users.
-	if p.IsDeleted() && status != types.StatusDeleted {
-		return ErrInvalidStatusTransition
+	if !p.Status.CanTransitionTo(status) {
+		return errors.NewErrInvalidStatusTransition(
+			string(p.Status),
+			string(status),
+			p.Status.AllowedNextStatuses(),
+		)
 	}
 
 	p.Status = status

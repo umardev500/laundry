@@ -13,7 +13,7 @@ func FromEntModel(e *ent.PlatformUser) *domain.PlatformUser {
 	return &domain.PlatformUser{
 		ID:        e.ID,
 		UserID:    e.UserID,
-		Status:    types.Status(*e.Status),
+		Status:    types.PlatformUserStatus(*e.Status),
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,

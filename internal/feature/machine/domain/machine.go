@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -40,15 +41,19 @@ func (m *Machine) IsDeleted() bool {
 }
 
 func (m *Machine) SetStatus(status types.MachineStatus) error {
-	if m.Status == status {
+	if m.Status == status.Normalize() {
 		return types.ErrStatusUnchanged
 	}
 
-	if m.IsDeleted() && status != types.MachineStatusOffline {
-		return types.ErrInvalidStatusTransition
+	if !m.Status.CanTransitionTo(status) {
+		return errors.NewErrInvalidStatusTransition(
+			string(m.Status),
+			string(status.Normalize()),
+			m.Status.AllowedNextStatuses(),
+		)
 	}
 
-	m.Status = status
+	m.Status = status.Normalize()
 	m.UpdatedAt = time.Now().UTC()
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/internal/infra/database/seeder"
 	"github.com/umardev500/laundry/pkg/security"
+	"github.com/umardev500/laundry/pkg/types"
 )
 
 type PlatformUserSeeder struct {
@@ -58,7 +59,7 @@ func (s *PlatformUserSeeder) Seed(ctx context.Context) error {
 		SetID(uuid.MustParse("11111111-1111-1111-1111-111111111111")).
 		SetUserID(adminID).
 		AddRoleIDs(uuid.MustParse("22222222-2222-2222-2222-222222222222")).
-		SetStatus(platformuser.Status(user.StatusActive)).
+		SetStatus(platformuser.Status(types.PlatformUserStatusActive)).
 		OnConflict(
 			sql.ConflictColumns(platformuser.FieldUserID),
 		).

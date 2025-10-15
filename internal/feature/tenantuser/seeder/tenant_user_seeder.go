@@ -38,13 +38,13 @@ func (s *TenantUserSeeder) Seed(ctx context.Context) error {
 			ID:       uuid.MustParse("11111111-1111-1111-1111-111111111111"),
 			TenantID: uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
 			UserID:   uuid.MustParse("33333333-1111-1111-1111-111111111111"),
-			Status:   types.StatusActive,
+			Status:   types.Status(types.TenantUserStatusActive),
 		},
 		{
 			ID:       uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
 			UserID:   uuid.MustParse("22222222-1111-1111-1111-111111111111"),
-			Status:   types.StatusActive,
+			Status:   types.Status(types.TenantUserStatusActive),
 		},
 	}
 

@@ -21,6 +21,6 @@ func (r *CreatePlatformUserRequest) ToDomain() (*domain.PlatformUser, error) {
 
 	return &domain.PlatformUser{
 		UserID: r.UserID,
-		Status: types.StatusActive, // default active
+		Status: types.PlatformUserStatusActive, // default active
 	}, nil
 }

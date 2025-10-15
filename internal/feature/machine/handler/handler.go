@@ -94,12 +94,13 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 		return httpx.BadRequest(c, err.Error())
 	}
 
-	if err := q.Validate(); err != nil {
-		return httpx.BadRequest(c, err.Error())
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return httpx.BadRequest(c, "invalid id")
 	}
 
 	ctx := appctx.New(c.UserContext())
-	m, err := q.ToDomain()
+	m, err := q.ToDomain(id)
 	if err != nil {
 		return httpx.BadRequest(c, err.Error())
 	}

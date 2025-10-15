@@ -44,7 +44,7 @@ func (t *Tenant) IsDeleted() bool {
 
 // SetStatus updates the tenant's status with validation.
 func (t *Tenant) SetStatus(status types.TenantStatus) error {
-	if t.Status == status {
+	if t.Status == status.Normalize() {
 		return types.ErrStatusUnchanged
 	}
 
@@ -52,12 +52,12 @@ func (t *Tenant) SetStatus(status types.TenantStatus) error {
 		allowedStatuses := t.Status.AllowedNextStatuses()
 		return errors.NewErrInvalidStatusTransition(
 			string(t.Status),
-			string(status),
+			string(status.Normalize()),
 			allowedStatuses,
 		)
 	}
 
-	t.Status = status
+	t.Status = status.Normalize()
 	t.UpdatedAt = time.Now().UTC()
 	return nil
 }
