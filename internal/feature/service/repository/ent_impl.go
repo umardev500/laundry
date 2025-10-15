@@ -77,10 +77,15 @@ func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.Service, 
 
 // FindByName retrieves a service by name within tenant scope.
 func (r *entImpl) FindByName(ctx *appctx.Context, name string) (*domain.Service, error) {
+	var err error
 	conn := r.client.GetConn(ctx)
 
 	qb := conn.Service.Query().Where(service.NameEQ(name))
-	qb = r.tenantScopedQuery(ctx, qb)
+
+	qb, err = r.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	entModel, err := qb.Only(ctx)
 	if err != nil {
@@ -118,11 +123,17 @@ func (r *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 
 // List retrieves paginated services with filtering, ordering and tenant scoping.
 func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*pagination.PageData[domain.Service], error) {
+	var err error
+
 	q.Normalize()
 
 	conn := r.client.GetConn(ctx)
 	qb := conn.Service.Query()
-	qb = r.tenantScopedQuery(ctx, qb)
+
+	qb, err = r.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	if q.Search != "" {
 		qb = qb.Where(
@@ -173,11 +184,23 @@ func (r *entImpl) List(ctx *appctx.Context, q *query.ListServiceQuery) (*paginat
 	}, nil
 }
 
-// tenantScopedQuery ensures queries are filtered by tenant ID when available.
-func (r *entImpl) tenantScopedQuery(ctx *appctx.Context, qb *ent.ServiceQuery) *ent.ServiceQuery {
-	tenantID := ctx.TenantID()
-	if tenantID == nil {
-		return qb // fallback for system-wide/migrations/seeders
+// -------------------------
+// Helpers
+// -------------------------
+
+// applyScope ensures tenant-level filtering.
+func (r *entImpl) applyScope(ctx *appctx.Context, qb *ent.ServiceQuery) (*ent.ServiceQuery, error) {
+	switch ctx.Scope() {
+	case appctx.ScopeTenant:
+		qb = qb.Where(service.TenantIDEQ(*ctx.TenantID()))
+	case appctx.ScopeUser:
+		// RBAC already handles access, no filtering needed here
+	case appctx.ScopeAdmin:
+	// no filtering for admin
+	default:
+		// Unknown scope, deny access by default
+		return nil, domain.ErrUnauthorizedServiceAccess
 	}
-	return qb.Where(service.TenantIDEQ(*tenantID))
+
+	return qb, nil
 }

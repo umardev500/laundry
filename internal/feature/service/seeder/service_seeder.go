@@ -33,6 +33,7 @@ func (s *ServiceSeeder) Seed(ctx context.Context) error {
 		Price             float64
 		Description       string
 	}{
+		// Tenant A
 		{
 			ID:                uuid.MustParse("11111111-1111-1111-1111-111111111111"),
 			TenantID:          uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -50,6 +51,26 @@ func (s *ServiceSeeder) Seed(ctx context.Context) error {
 			Name:              "Wash Large",
 			Price:             5.0,
 			Description:       "Large double load wash",
+		},
+
+		// Tenant B
+		{
+			ID:                uuid.MustParse("33333333-3333-3333-3333-333333333333"),
+			TenantID:          uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			ServiceUnitID:     uuid.MustParse("11111111-1111-1111-1111-111111111111"), // Per Piece
+			ServiceCategoryID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+			Name:              "Wash Small B",
+			Price:             3.0,
+			Description:       "Small single load wash for Tenant B",
+		},
+		{
+			ID:                uuid.MustParse("44444444-4444-4444-4444-444444444444"),
+			TenantID:          uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			ServiceUnitID:     uuid.MustParse("22222222-2222-2222-2222-222222222222"), // Per Kilogram
+			ServiceCategoryID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+			Name:              "Wash Large B",
+			Price:             6.0,
+			Description:       "Large double load wash for Tenant B",
 		},
 	}
 
