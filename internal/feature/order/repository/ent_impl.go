@@ -23,7 +23,6 @@ func (r *entImpl) FindById(ctx *appctx.Context, id uuid.UUID, q *query.OrderQuer
 	conn := r.client.GetConn(ctx)
 	qb := conn.Order.Query().
 		Where(order.IDEQ(id))
-	qb = r.applyScope(ctx, qb)
 
 	// Conditionally preload items
 	if q.IncludeItems {
