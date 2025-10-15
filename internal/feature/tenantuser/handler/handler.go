@@ -85,6 +85,8 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	result, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrTenantUserNotFound):
 			return httpx.NotFound(c, err.Error())
 		default:
@@ -115,6 +117,8 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 	result, err := h.service.UpdateStatus(ctx, tuDomain)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrTenantUserNotFound):
 			return httpx.NotFound(c, err.Error())
 		default:
@@ -138,7 +142,14 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 	ctx := appctx.New(c.UserContext())
 	if err := h.service.Delete(ctx, id); err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		switch {
+		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
+			return httpx.Forbidden(c, err.Error())
+		case errors.Is(err, domain.ErrTenantUserNotFound):
+			return httpx.NotFound(c, err.Error())
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
 	}
 
 	return httpx.NoContent(c)
@@ -157,7 +168,14 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 
 	ctx := appctx.New(c.UserContext())
 	if err := h.service.Purge(ctx, id); err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		switch {
+		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
+			return httpx.Forbidden(c, err.Error())
+		case errors.Is(err, domain.ErrTenantUserNotFound):
+			return httpx.NotFound(c, err.Error())
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
 	}
 
 	return httpx.NoContent(c)

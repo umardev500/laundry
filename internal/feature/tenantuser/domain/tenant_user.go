@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -61,4 +62,13 @@ func (tu *TenantUser) SetStatus(status types.Status) error {
 	tu.Status = status
 	tu.UpdatedAt = time.Now().UTC()
 	return nil
+}
+
+// BelongsToTenant checks whether the machine belongs to the tenant in context.
+// Returns true if scope is platform or tenant IDs match.
+func (r *TenantUser) BelongsToTenant(ctx *appctx.Context) bool {
+	if ctx.Scope() == appctx.ScopeTenant {
+		return r.TenantID != uuid.Nil && ctx.TenantID() != nil && r.TenantID == *ctx.TenantID()
+	}
+	return true
 }

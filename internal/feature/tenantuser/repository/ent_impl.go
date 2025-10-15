@@ -14,23 +14,22 @@ import (
 	"github.com/umardev500/laundry/internal/feature/tenantuser/query"
 	"github.com/umardev500/laundry/internal/infra/database/entdb"
 	"github.com/umardev500/laundry/pkg/pagination"
-	"github.com/umardev500/laundry/pkg/types"
 
 	mapper "github.com/umardev500/laundry/internal/feature/tenantuser/mapper"
 )
 
-// tenantUserRepository implements the Repository interface.
-type tenantUserRepository struct {
+// entImpl implements the Repository interface.
+type entImpl struct {
 	client *entdb.Client
 }
 
 // NewRepository creates a new TenantUser repository.
 func NewRepository(client *entdb.Client) Repository {
-	return &tenantUserRepository{client: client}
+	return &entImpl{client: client}
 }
 
 // Create a new TenantUser entry.
-func (r *tenantUserRepository) Create(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
+func (r *entImpl) Create(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
 	conn := r.client.GetConn(ctx)
 
 	entTenantUser, err := conn.TenantUser.Create().
@@ -42,22 +41,22 @@ func (r *tenantUserRepository) Create(ctx *appctx.Context, tu *domain.TenantUser
 		return nil, fmt.Errorf("failed to create tenant user: %w", err)
 	}
 
-	return mapToDomain(entTenantUser), nil
+	return mapper.FromEntModel(entTenantUser), nil
 }
 
 // FindByID retrieves a TenantUser by ID.
-func (r *tenantUserRepository) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
+func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
 	conn := r.client.GetConn(ctx)
 
 	entTenantUser, err := conn.TenantUser.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return mapToDomain(entTenantUser), nil
+	return mapper.FromEntModel(entTenantUser), nil
 }
 
 // FindByUser implements Repository.
-func (r *tenantUserRepository) FindByUser(ctx *appctx.Context, userID uuid.UUID) ([]*domain.TenantUser, error) {
+func (r *entImpl) FindByUser(ctx *appctx.Context, userID uuid.UUID) ([]*domain.TenantUser, error) {
 	conn := r.client.GetConn(ctx)
 
 	db := conn.TenantUser.Query()
@@ -73,7 +72,7 @@ func (r *tenantUserRepository) FindByUser(ctx *appctx.Context, userID uuid.UUID)
 }
 
 // FindByUserAndTenant retrieves a TenantUser by user_id and tenant_id.
-func (r *tenantUserRepository) FindByUserAndTenant(ctx *appctx.Context, userID, tenantID uuid.UUID) (*domain.TenantUser, error) {
+func (r *entImpl) FindByUserAndTenant(ctx *appctx.Context, userID, tenantID uuid.UUID) (*domain.TenantUser, error) {
 	conn := r.client.GetConn(ctx)
 
 	entTenantUser, err := conn.TenantUser.
@@ -86,32 +85,38 @@ func (r *tenantUserRepository) FindByUserAndTenant(ctx *appctx.Context, userID, 
 	if err != nil {
 		return nil, err
 	}
-	return mapToDomain(entTenantUser), nil
+	return mapper.FromEntModel(entTenantUser), nil
 }
 
 // List retrieves tenant users with pagination and optional filters.
-func (r *tenantUserRepository) List(ctx *appctx.Context, q *query.ListTenantUserQuery) (*pagination.PageData[domain.TenantUser], error) {
+func (r *entImpl) List(ctx *appctx.Context, q *query.ListTenantUserQuery) (*pagination.PageData[domain.TenantUser], error) {
+	var err error
+
 	q.Normalize()
 	conn := r.client.GetConn(ctx)
 
-	db := conn.TenantUser.Query()
+	qb := conn.TenantUser.Query()
+	qb, err = r.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	if q.Search != "" {
-		db = db.Where(
+		qb = qb.Where(
 			tenantuser.HasTenantWith(tenant.NameContainsFold(q.Search)),
 			tenantuser.HasUserWith(user.EmailContainsFold(q.Search)),
 		)
 	}
 
 	if q.Status != "" {
-		db = db.Where(tenantuser.StatusEQ(tenantuser.Status(q.Status)))
+		qb = qb.Where(tenantuser.StatusEQ(tenantuser.Status(q.Status)))
 	}
 
 	if !q.IncludeDeleted {
-		db = db.Where(tenantuser.DeletedAtIsNil())
+		qb = qb.Where(tenantuser.DeletedAtIsNil())
 	}
 
-	total, err := db.Clone().Count(ctx)
+	total, err := qb.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -119,19 +124,19 @@ func (r *tenantUserRepository) List(ctx *appctx.Context, q *query.ListTenantUser
 	// Ordering
 	switch q.Order {
 	case query.OrderCreatedAtAsc:
-		db = db.Order(ent.Asc(tenantuser.FieldCreatedAt))
+		qb = qb.Order(ent.Asc(tenantuser.FieldCreatedAt))
 	case query.OrderCreatedAtDesc:
-		db = db.Order(ent.Desc(tenantuser.FieldCreatedAt))
+		qb = qb.Order(ent.Desc(tenantuser.FieldCreatedAt))
 	case query.OrderUpdatedAtAsc:
-		db = db.Order(ent.Asc(tenantuser.FieldUpdatedAt))
+		qb = qb.Order(ent.Asc(tenantuser.FieldUpdatedAt))
 	case query.OrderUpdatedAtDesc:
-		db = db.Order(ent.Desc(tenantuser.FieldUpdatedAt))
+		qb = qb.Order(ent.Desc(tenantuser.FieldUpdatedAt))
 	default:
-		db = db.Order(ent.Desc(tenantuser.FieldCreatedAt))
+		qb = qb.Order(ent.Desc(tenantuser.FieldCreatedAt))
 	}
 
 	// Pagination
-	items, err := db.
+	items, err := qb.
 		Limit(q.Limit).
 		Offset(q.Offset()).
 		All(ctx)
@@ -145,7 +150,7 @@ func (r *tenantUserRepository) List(ctx *appctx.Context, q *query.ListTenantUser
 }
 
 // Update updates an existing TenantUser record.
-func (r *tenantUserRepository) Update(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
+func (r *entImpl) Update(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
 	conn := r.client.GetConn(ctx)
 
 	entTenantUser, err := conn.TenantUser.
@@ -159,11 +164,11 @@ func (r *tenantUserRepository) Update(ctx *appctx.Context, tu *domain.TenantUser
 		return nil, fmt.Errorf("failed to update tenant user: %w", err)
 	}
 
-	return mapToDomain(entTenantUser), nil
+	return mapper.FromEntModel(entTenantUser), nil
 }
 
 // Delete permanently removes a tenant user (purge).
-func (r *tenantUserRepository) Delete(ctx *appctx.Context, id uuid.UUID) error {
+func (r *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 	conn := r.client.GetConn(ctx)
 
 	err := conn.TenantUser.
@@ -177,15 +182,23 @@ func (r *tenantUserRepository) Delete(ctx *appctx.Context, id uuid.UUID) error {
 	return nil
 }
 
-// mapToDomain converts Ent model to domain model.
-func mapToDomain(tu *ent.TenantUser) *domain.TenantUser {
-	return &domain.TenantUser{
-		ID:        tu.ID,
-		UserID:    tu.UserID,
-		TenantID:  tu.TenantID,
-		Status:    types.Status(*tu.Status),
-		CreatedAt: tu.CreatedAt,
-		UpdatedAt: tu.UpdatedAt,
-		DeletedAt: tu.DeletedAt,
+// -------------------------
+// Helpers
+// -------------------------
+
+// applyScope ensures tenant-level filtering.
+func (r *entImpl) applyScope(ctx *appctx.Context, qb *ent.TenantUserQuery) (*ent.TenantUserQuery, error) {
+	switch ctx.Scope() {
+	case appctx.ScopeTenant:
+		qb = qb.Where(tenantuser.TenantIDEQ(*ctx.TenantID()))
+	case appctx.ScopeUser:
+		// RBAC already handles access, no filtering needed here
+	case appctx.ScopeAdmin:
+	// no filtering for admin
+	default:
+		// Unknown scope, deny access by default
+		return nil, domain.ErrUnauthorizedUserAccess
 	}
+
+	return qb, nil
 }

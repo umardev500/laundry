@@ -29,16 +29,19 @@ func (s *TenantUserSeeder) Seed(ctx context.Context) error {
 
 	// Example dataset — you can adjust or expand this as needed.
 	data := []struct {
+		ID       uuid.UUID
 		TenantID uuid.UUID
 		UserID   uuid.UUID
 		Status   types.Status
 	}{
 		{
+			ID:       uuid.MustParse("11111111-1111-1111-1111-111111111111"),
 			TenantID: uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
 			UserID:   uuid.MustParse("33333333-1111-1111-1111-111111111111"),
 			Status:   types.StatusActive,
 		},
 		{
+			ID:       uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
 			UserID:   uuid.MustParse("22222222-1111-1111-1111-111111111111"),
 			Status:   types.StatusActive,
@@ -48,6 +51,7 @@ func (s *TenantUserSeeder) Seed(ctx context.Context) error {
 	for _, d := range data {
 		err := conn.TenantUser.
 			Create().
+			SetID(d.ID).
 			SetTenantID(d.TenantID).
 			SetUserID(d.UserID).
 			SetStatus(tenantuser.Status(d.Status)).

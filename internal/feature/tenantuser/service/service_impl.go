@@ -39,7 +39,7 @@ func (s *serviceImpl) GetByUser(ctx *appctx.Context, userID uuid.UUID) ([]*domai
 }
 
 func (s *serviceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
-	return s.findExistingTenantUser(ctx, id)
+	return s.findExisting(ctx, id)
 }
 
 func (s *serviceImpl) List(ctx *appctx.Context, q *query.ListTenantUserQuery) (*pagination.PageData[domain.TenantUser], error) {
@@ -47,7 +47,7 @@ func (s *serviceImpl) List(ctx *appctx.Context, q *query.ListTenantUserQuery) (*
 }
 
 func (s *serviceImpl) UpdateStatus(ctx *appctx.Context, tu *domain.TenantUser) (*domain.TenantUser, error) {
-	existing, err := s.findExistingTenantUser(ctx, tu.ID)
+	existing, err := s.findExisting(ctx, tu.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *serviceImpl) UpdateStatus(ctx *appctx.Context, tu *domain.TenantUser) (
 }
 
 func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
-	tu, err := s.findExistingTenantUser(ctx, id)
+	tu, err := s.findExisting(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
-	tu, err := s.findTenantUserAllowDeleted(ctx, id)
+	tu, err := s.findAllowDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, tu.ID)
 }
 
-func (s *serviceImpl) findExistingTenantUser(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
+func (s *serviceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
 	tu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -92,10 +92,14 @@ func (s *serviceImpl) findExistingTenantUser(ctx *appctx.Context, id uuid.UUID) 
 		return nil, domain.ErrTenantUserDeleted
 	}
 
+	if !tu.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedUserAccess
+	}
+
 	return tu, nil
 }
 
-func (s *serviceImpl) findTenantUserAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
+func (s *serviceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.TenantUser, error) {
 	tu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -103,5 +107,10 @@ func (s *serviceImpl) findTenantUserAllowDeleted(ctx *appctx.Context, id uuid.UU
 		}
 		return nil, err
 	}
+
+	if !tu.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedUserAccess
+	}
+
 	return tu, nil
 }
