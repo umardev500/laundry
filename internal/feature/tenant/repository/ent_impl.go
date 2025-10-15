@@ -81,14 +81,20 @@ func (e *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 func (e *entImpl) List(ctx *appctx.Context, q *query.ListTenantQuery) (*pagination.PageData[domain.Tenant], error) {
+	var err error
 	q.Normalize()
 
 	conn := e.client.GetConn(ctx)
-	queryBuilder := conn.Tenant.Query()
+	qb := conn.Tenant.Query()
+
+	qb, err = e.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	// 🔍 Apply search filter
 	if q.Search != "" {
-		queryBuilder = queryBuilder.Where(
+		qb = qb.Where(
 			tenant.Or(
 				tenant.NameContainsFold(q.Search),
 				tenant.EmailContainsFold(q.Search),
@@ -98,42 +104,42 @@ func (e *entImpl) List(ctx *appctx.Context, q *query.ListTenantQuery) (*paginati
 
 	// ⚙️ Apply status filter
 	if q.Status != "" {
-		queryBuilder = queryBuilder.Where(
+		qb = qb.Where(
 			tenant.StatusEQ(tenant.Status(q.Status)),
 		)
 	}
 
 	// 🗑️ Include/exclude deleted tenants
 	if !q.IncludeDeleted {
-		queryBuilder = queryBuilder.Where(tenant.DeletedAtIsNil())
+		qb = qb.Where(tenant.DeletedAtIsNil())
 	}
 
 	// ↕️ Apply ordering
 	switch q.Order {
 	case query.OrderNameAsc:
-		queryBuilder = queryBuilder.Order(ent.Asc(tenant.FieldName))
+		qb = qb.Order(ent.Asc(tenant.FieldName))
 	case query.OrderNameDesc:
-		queryBuilder = queryBuilder.Order(ent.Desc(tenant.FieldName))
+		qb = qb.Order(ent.Desc(tenant.FieldName))
 	case query.OrderCreatedAtAsc:
-		queryBuilder = queryBuilder.Order(ent.Asc(tenant.FieldCreatedAt))
+		qb = qb.Order(ent.Asc(tenant.FieldCreatedAt))
 	case query.OrderCreatedAtDesc:
-		queryBuilder = queryBuilder.Order(ent.Desc(tenant.FieldCreatedAt))
+		qb = qb.Order(ent.Desc(tenant.FieldCreatedAt))
 	case query.OrderUpdatedAtAsc:
-		queryBuilder = queryBuilder.Order(ent.Asc(tenant.FieldUpdatedAt))
+		qb = qb.Order(ent.Asc(tenant.FieldUpdatedAt))
 	case query.OrderUpdatedAtDesc:
-		queryBuilder = queryBuilder.Order(ent.Desc(tenant.FieldUpdatedAt))
+		qb = qb.Order(ent.Desc(tenant.FieldUpdatedAt))
 	default:
-		queryBuilder = queryBuilder.Order(ent.Desc(tenant.FieldCreatedAt))
+		qb = qb.Order(ent.Desc(tenant.FieldCreatedAt))
 	}
 
 	// 📊 Count total before pagination
-	total, err := queryBuilder.Clone().Count(ctx)
+	total, err := qb.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// 📄 Paginated results
-	entTenants, err := queryBuilder.
+	entTenants, err := qb.
 		Limit(q.Limit).
 		Offset(q.Offset()).
 		All(ctx)
@@ -147,4 +153,25 @@ func (e *entImpl) List(ctx *appctx.Context, q *query.ListTenantQuery) (*paginati
 		Data:  tenants,
 		Total: total,
 	}, nil
+}
+
+// -------------------------
+// Helpers
+// -------------------------
+
+// applyScope ensures tenant-level filtering.
+func (r *entImpl) applyScope(ctx *appctx.Context, qb *ent.TenantQuery) (*ent.TenantQuery, error) {
+	switch ctx.Scope() {
+	case appctx.ScopeTenant:
+		qb = qb.Where(tenant.IDEQ(*ctx.TenantID()))
+	case appctx.ScopeUser:
+		// RBAC already handles access, no filtering needed here
+	case appctx.ScopeAdmin:
+	// no filtering for admin
+	default:
+		// Unknown scope, deny access by default
+		return nil, domain.ErrUnauthorizedTenant
+	}
+
+	return qb, nil
 }

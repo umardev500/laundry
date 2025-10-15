@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
+	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -12,7 +13,7 @@ type TenantUser struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	TenantID  uuid.UUID
-	Status    types.Status
+	Status    types.TenantUserStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -29,7 +30,7 @@ func (tu *TenantUser) Create(loggedInTenantID *uuid.UUID) error {
 		tu.ID = uuid.New()
 	}
 
-	tu.Status = types.StatusActive
+	tu.Status = types.TenantUserStatusActive
 	tu.CreatedAt = time.Now().UTC()
 	tu.UpdatedAt = tu.CreatedAt
 	tu.DeletedAt = nil
@@ -40,7 +41,7 @@ func (tu *TenantUser) Create(loggedInTenantID *uuid.UUID) error {
 // SoftDelete marks the tenant user as deleted.
 func (tu *TenantUser) SoftDelete() {
 	now := time.Now().UTC()
-	tu.Status = types.StatusDeleted
+	tu.Status = types.TenantUserStatusDeleted
 	tu.DeletedAt = &now
 }
 
@@ -50,13 +51,17 @@ func (tu *TenantUser) IsDeleted() bool {
 }
 
 // SetStatus safely updates the status.
-func (tu *TenantUser) SetStatus(status types.Status) error {
+func (tu *TenantUser) SetStatus(status types.TenantUserStatus) error {
 	if tu.Status == status {
 		return types.ErrStatusUnchanged
 	}
 
-	if tu.IsDeleted() && status != types.StatusDeleted {
-		return types.ErrInvalidStatusTransition
+	if !tu.Status.CanTransitionTo(status) {
+		return errors.NewErrInvalidStatusTransition(
+			string(tu.Status),
+			string(status),
+			tu.Status.AllowedNextStatuses(),
+		)
 	}
 
 	tu.Status = status

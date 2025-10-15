@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/pkg/errors"
 	"github.com/umardev500/laundry/pkg/types"
 )
@@ -59,4 +60,12 @@ func (t *Tenant) SetStatus(status types.TenantStatus) error {
 	t.Status = status
 	t.UpdatedAt = time.Now().UTC()
 	return nil
+}
+
+// BelongsToTenant checks whether the service belongs to the tenant in context.
+func (s *Tenant) BelongsToTenant(ctx *appctx.Context) bool {
+	if ctx.Scope() == appctx.ScopeTenant {
+		return ctx.TenantID() != nil && s.ID == *ctx.TenantID()
+	}
+	return true
 }

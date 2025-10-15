@@ -42,7 +42,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 	res, err := h.service.Create(ctx, unit)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(res))

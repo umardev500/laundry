@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/contract"
-	"github.com/umardev500/laundry/internal/feature/tenantuser/domain"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/dto"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/mapper"
 	"github.com/umardev500/laundry/internal/feature/tenantuser/query"
@@ -42,14 +39,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	tu := req.ToDomain(ctx)
 	result, err := h.service.Create(ctx, tu)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTenantOrUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrTenantUserAlreadyExists):
-			return httpx.Conflict(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToTenantUserResponse(result))
@@ -67,7 +57,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	result, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleTenantUserError(c, err)
 	}
 
 	dtoPage := mapper.ToTenantUserResponsePage(result)
@@ -84,14 +74,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrTenantUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToTenantUserResponse(result))
@@ -116,14 +99,7 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 
 	result, err := h.service.UpdateStatus(ctx, tuDomain)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrTenantUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantUserError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToTenantUserResponse(result))
@@ -142,14 +118,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 	ctx := appctx.New(c.UserContext())
 	if err := h.service.Delete(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrTenantUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantUserError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -168,14 +137,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 
 	ctx := appctx.New(c.UserContext())
 	if err := h.service.Purge(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrUnauthorizedUserAccess):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrTenantUserNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantUserError(c, err)
 	}
 
 	return httpx.NoContent(c)

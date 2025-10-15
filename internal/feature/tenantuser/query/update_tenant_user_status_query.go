@@ -49,6 +49,6 @@ func (q *UpdateStatusQuery) ToDomain() (*domain.TenantUser, error) {
 
 	return &domain.TenantUser{
 		ID:     uid,
-		Status: types.Status(q.Status),
+		Status: types.TenantUserStatus(q.Status),
 	}, nil
 }

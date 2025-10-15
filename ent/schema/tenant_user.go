@@ -23,8 +23,8 @@ func (TenantUser) Fields() []ent.Field {
 		field.UUID("user_id", uuid.UUID{}).Immutable(),
 		field.UUID("tenant_id", uuid.UUID{}).Immutable(),
 		field.Enum("status").
-			Values(string(types.StatusActive), string(types.StatusSuspended), string(types.StatusDeleted)).
-			Default("active").Nillable(),
+			Values(string(types.TenantUserStatusActive), string(types.TenantUserStatusSuspended), string(types.TenantUserStatusDeleted)).
+			Default(string(types.TenantUserStatusActive)).Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 		field.Time("deleted_at").Optional().Nillable(),

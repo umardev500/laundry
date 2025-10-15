@@ -18,7 +18,7 @@ func FromEntModel(e *ent.TenantUser) *domain.TenantUser {
 		ID:        e.ID,
 		UserID:    e.UserID,
 		TenantID:  e.TenantID,
-		Status:    types.Status(*e.Status),
+		Status:    types.TenantUserStatus(*e.Status),
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,

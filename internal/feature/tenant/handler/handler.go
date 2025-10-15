@@ -12,7 +12,6 @@ import (
 	"github.com/umardev500/laundry/internal/feature/tenant/mapper"
 	"github.com/umardev500/laundry/internal/feature/tenant/query"
 	"github.com/umardev500/laundry/pkg/httpx"
-	"github.com/umardev500/laundry/pkg/types"
 	"github.com/umardev500/laundry/pkg/validator"
 )
 
@@ -68,14 +67,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTenantNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrTenantDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToTenantResponse(result))
@@ -102,16 +94,7 @@ func (h *Handler) UpdateStatus(c *fiber.Ctx) error {
 
 	result, err := h.service.UpdateStatus(ctx, t)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTenantNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrTenantDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, types.ErrStatusUnchanged):
-			return httpx.JSONWithMessage[*dto.TenantResponse](c, fiber.StatusOK, nil, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToTenantResponse(result))
@@ -128,14 +111,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Delete(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTenantDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrTenantNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -151,12 +127,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Purge(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTenantNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleTenantError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -173,7 +144,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleTenantError(c, err)
 	}
 
 	dtoPage := mapper.ToTenantResponsePage(result)

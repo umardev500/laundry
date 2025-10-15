@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/umardev500/laundry/internal/app/appctx"
-	"github.com/umardev500/laundry/internal/feature/service/domain"
 	"github.com/umardev500/laundry/internal/feature/servicecategory/contract"
 	"github.com/umardev500/laundry/internal/feature/servicecategory/dto"
 	"github.com/umardev500/laundry/internal/feature/servicecategory/mapper"
@@ -43,7 +40,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 	res, err := h.service.Create(ctx, category)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToResponse(res))
@@ -60,7 +57,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	data, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.JSONPaginated(
@@ -81,7 +78,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 	category, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		return httpx.NotFound(c, err.Error())
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(category))
@@ -107,7 +104,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 	res, err := h.service.Update(ctx, category)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
@@ -122,14 +119,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 
 	if err := h.service.Delete(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrServiceDeleted):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -144,12 +134,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 
 	if err := h.service.Purge(ctx, id); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrServiceNotFound):
-			return httpx.NotFound(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleServiceCategoryError(c, err)
 	}
 
 	return httpx.NoContent(c)

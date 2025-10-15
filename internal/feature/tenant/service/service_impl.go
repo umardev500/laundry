@@ -37,7 +37,7 @@ func (s *serviceImpl) List(ctx *appctx.Context, q *query.ListTenantQuery) (*pagi
 }
 
 func (s *serviceImpl) GetByID(ctx *appctx.Context, id uuid.UUID) (*domain.Tenant, error) {
-	return s.findExistingTenant(ctx, id)
+	return s.findExisting(ctx, id)
 }
 
 func (s *serviceImpl) GetByEmail(ctx *appctx.Context, email string) (*domain.Tenant, error) {
@@ -45,7 +45,7 @@ func (s *serviceImpl) GetByEmail(ctx *appctx.Context, email string) (*domain.Ten
 }
 
 func (s *serviceImpl) Update(ctx *appctx.Context, t *domain.Tenant) (*domain.Tenant, error) {
-	tenant, err := s.findExistingTenant(ctx, t.ID)
+	tenant, err := s.findExisting(ctx, t.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (s *serviceImpl) Update(ctx *appctx.Context, t *domain.Tenant) (*domain.Ten
 }
 
 func (s *serviceImpl) UpdateStatus(ctx *appctx.Context, t *domain.Tenant) (*domain.Tenant, error) {
-	tenant, err := s.findExistingTenant(ctx, t.ID)
+	tenant, err := s.findExisting(ctx, t.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *serviceImpl) UpdateStatus(ctx *appctx.Context, t *domain.Tenant) (*doma
 }
 
 func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
-	tenant, err := s.findExistingTenant(ctx, id)
+	tenant, err := s.findExisting(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
-	tenant, err := s.findTenantAllowDeleted(ctx, id)
+	tenant, err := s.findAllowDeleted(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, tenant.ID)
 }
 
-func (s *serviceImpl) findExistingTenant(ctx *appctx.Context, id uuid.UUID) (*domain.Tenant, error) {
+func (s *serviceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.Tenant, error) {
 	tenant, err := s.repo.FindById(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -102,10 +102,14 @@ func (s *serviceImpl) findExistingTenant(ctx *appctx.Context, id uuid.UUID) (*do
 		return nil, domain.ErrTenantDeleted
 	}
 
+	if !tenant.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedTenant
+	}
+
 	return tenant, nil
 }
 
-func (s *serviceImpl) findTenantAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Tenant, error) {
+func (s *serviceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Tenant, error) {
 	tenant, err := s.repo.FindById(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -113,5 +117,10 @@ func (s *serviceImpl) findTenantAllowDeleted(ctx *appctx.Context, id uuid.UUID) 
 		}
 		return nil, err
 	}
+
+	if !tenant.BelongsToTenant(ctx) {
+		return nil, domain.ErrUnauthorizedTenant
+	}
+
 	return tenant, nil // ✅ don’t block deleted tenants
 }
