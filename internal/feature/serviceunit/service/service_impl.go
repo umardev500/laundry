@@ -68,6 +68,19 @@ func (s *serviceImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 	return err
 }
 
+func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
+	u, err := s.findAllowDeleted(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.Delete(ctx, u.ID)
+}
+
+// -------------------------
+// Helpers
+// -------------------------
+
 // findExisting fetches a service unit that must exist and belong to the current tenant.
 func (s *serviceImpl) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.ServiceUnit, error) {
 	u, err := s.repo.FindByID(ctx, id)
@@ -104,13 +117,4 @@ func (s *serviceImpl) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*doma
 	}
 
 	return u, nil
-}
-
-func (s *serviceImpl) Purge(ctx *appctx.Context, id uuid.UUID) error {
-	u, err := s.findAllowDeleted(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	return s.repo.Delete(ctx, u.ID)
 }

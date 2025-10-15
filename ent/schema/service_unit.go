@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -20,7 +21,7 @@ func (ServiceUnit) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
 		field.UUID("tenant_id", uuid.UUID{}).Immutable(),
-		field.String("name").NotEmpty().Unique().Comment("Full name of the unit, e.g. 'Per Piece', 'Per Kilogram'"),
+		field.String("name").NotEmpty().Comment("Full name of the unit, e.g. 'Per Piece', 'Per Kilogram'"),
 		field.String("symbol").Optional().Comment("Short form like 'pc', 'kg', 'set'"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
@@ -42,5 +43,12 @@ func (ServiceUnit) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Immutable(),
+	}
+}
+
+// Indexes
+func (ServiceUnit) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("tenant_id", "name").Unique(),
 	}
 }

@@ -56,10 +56,14 @@ func (e *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID) (*domain.ServiceUn
 
 // FindByName retrieves a service unit by name within the tenant scope.
 func (e *entImpl) FindByName(ctx *appctx.Context, name string) (*domain.ServiceUnit, error) {
+	var err error
 	conn := e.client.GetConn(ctx)
 
 	qb := conn.ServiceUnit.Query().Where(serviceunit.NameEQ(name))
-	qb = e.tenantScopedQuery(ctx, qb)
+	qb, err = e.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	entModel, err := qb.Only(ctx)
 	if err != nil {
@@ -94,11 +98,15 @@ func (e *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 
 // List retrieves paginated service units with optional filters and ordering.
 func (e *entImpl) List(ctx *appctx.Context, q *query.ListServiceUnitQuery) (*pagination.PageData[domain.ServiceUnit], error) {
+	var err error
 	q.Normalize()
 
 	conn := e.client.GetConn(ctx)
 	qb := conn.ServiceUnit.Query()
-	qb = e.tenantScopedQuery(ctx, qb)
+	qb, err = e.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	if q.Search != "" {
 		qb = qb.Where(serviceunit.NameContainsFold(q.Search))
@@ -139,11 +147,23 @@ func (e *entImpl) List(ctx *appctx.Context, q *query.ListServiceUnitQuery) (*pag
 	}, nil
 }
 
-// tenantScopedQuery ensures queries are filtered by tenant ID when available.
-func (e *entImpl) tenantScopedQuery(ctx *appctx.Context, qb *ent.ServiceUnitQuery) *ent.ServiceUnitQuery {
-	tenantID := ctx.TenantID()
-	if tenantID == nil {
-		return qb // fallback for system-wide access (like seeders or platform users)
+// -------------------------
+// Helpers
+// -------------------------
+
+// applyScope ensures tenant-level filtering.
+func (r *entImpl) applyScope(ctx *appctx.Context, qb *ent.ServiceUnitQuery) (*ent.ServiceUnitQuery, error) {
+	switch ctx.Scope() {
+	case appctx.ScopeTenant:
+		qb = qb.Where(serviceunit.TenantIDEQ(*ctx.TenantID()))
+	case appctx.ScopeUser:
+		// RBAC already handles access, no filtering needed here
+	case appctx.ScopeAdmin:
+	// no filtering for admin
+	default:
+		// Unknown scope, deny access by default
+		return nil, domain.ErrUnauthorizedAccess
 	}
-	return qb.Where(serviceunit.TenantIDEQ(*tenantID))
+
+	return qb, nil
 }

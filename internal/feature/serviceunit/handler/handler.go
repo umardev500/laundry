@@ -83,7 +83,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 
 	unit, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		return httpx.NotFound(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(unit))
@@ -111,7 +111,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 	res, err := h.service.Update(ctx, unit)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToResponse(res))
@@ -127,7 +127,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 
 	if err := h.service.Delete(ctx, id); err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -142,7 +142,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 
 	ctx := appctx.New(c.UserContext())
 	if err := h.service.Purge(ctx, id); err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleServiceUnitError(c, err)
 	}
 
 	return httpx.NoContent(c)

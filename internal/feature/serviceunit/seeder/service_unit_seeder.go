@@ -34,6 +34,7 @@ func (s *ServiceUnitSeeder) Seed(ctx context.Context) error {
 		Name     string
 		Symbol   string
 	}{
+		// Tenant A
 		{
 			ID:       uuid.MustParse("11111111-1111-1111-1111-111111111111"),
 			TenantID: uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -52,6 +53,26 @@ func (s *ServiceUnitSeeder) Seed(ctx context.Context) error {
 			Name:     "Per Set",
 			Symbol:   "set",
 		},
+
+		// Tenant B
+		{
+			ID:       uuid.MustParse("44444444-4444-4444-4444-444444444444"),
+			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			Name:     "Per Piece",
+			Symbol:   "pc",
+		},
+		{
+			ID:       uuid.MustParse("55555555-5555-5555-5555-555555555555"),
+			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			Name:     "Per Kilogram",
+			Symbol:   "kg",
+		},
+		{
+			ID:       uuid.MustParse("66666666-6666-6666-6666-666666666666"),
+			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			Name:     "Per Set",
+			Symbol:   "set",
+		},
 	}
 
 	for _, u := range units {
@@ -61,7 +82,9 @@ func (s *ServiceUnitSeeder) Seed(ctx context.Context) error {
 			SetTenantID(u.TenantID).
 			SetName(u.Name).
 			SetSymbol(u.Symbol).
-			OnConflict(sql.ConflictColumns(serviceunit.FieldName)).
+			OnConflict(
+				sql.ConflictColumns(serviceunit.FieldTenantID, serviceunit.FieldName),
+			).
 			UpdateNewValues().
 			Exec(ctx)
 		if err != nil {
