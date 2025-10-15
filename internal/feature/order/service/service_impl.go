@@ -321,7 +321,7 @@ func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID, q *query.
 
 	p, err := s.repo.FindById(ctx, id, q)
 	if err != nil {
-		if !ent.IsNotFound(err) {
+		if ent.IsNotFound(err) {
 			return nil, domain.ErrOrderNotFound
 		}
 		return nil, err
@@ -342,7 +342,7 @@ func (s *orderService) findExisting(ctx *appctx.Context, id uuid.UUID, q *query.
 func (s *orderService) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*domain.Order, error) {
 	p, err := s.repo.FindById(ctx, id, nil)
 	if err != nil {
-		if !ent.IsNotFound(err) {
+		if ent.IsNotFound(err) {
 			return nil, domain.ErrOrderNotFound
 		}
 		return nil, err
