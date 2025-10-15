@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
@@ -48,12 +46,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 
 	result, err := h.service.Create(ctx, roleDomain)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrRoleAlreadyExists):
-			return httpx.Conflict(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleRoleError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusCreated, mapper.ToRoleResponse(result))
@@ -69,16 +62,7 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	result, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrRoleNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrRoleDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrUnauthorizedRoleAccess):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleRoleError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToRoleResponse(result))
@@ -109,16 +93,7 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 
 	result, err := h.service.Update(ctx, roleDomain)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrRoleNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrRoleDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrUnauthorizedRoleAccess):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleRoleError(c, err)
 	}
 
 	return httpx.JSON(c, fiber.StatusOK, mapper.ToRoleResponse(result))
@@ -134,16 +109,7 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Delete(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrRoleDeleted):
-			return httpx.Forbidden(c, err.Error())
-		case errors.Is(err, domain.ErrRoleNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrUnauthorizedRoleAccess):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleRoleError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -159,14 +125,7 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	err = h.service.Purge(ctx, id)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrRoleNotFound):
-			return httpx.NotFound(c, err.Error())
-		case errors.Is(err, domain.ErrUnauthorizedRoleAccess):
-			return httpx.Forbidden(c, err.Error())
-		default:
-			return httpx.InternalServerError(c, err.Error())
-		}
+		return handleRoleError(c, err)
 	}
 
 	return httpx.NoContent(c)
@@ -184,7 +143,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 
 	result, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		return handleRoleError(c, err)
 	}
 
 	dtoPage := mapper.ToRoleResponsePage(result)
