@@ -64,6 +64,8 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 	res, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineNotFound):
 			return httpx.NotFound(c, err.Error())
 		case errors.Is(err, domain.ErrMachineDeleted):
@@ -99,6 +101,8 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 	res, err := h.service.Update(ctx, machineDomain)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineNotFound):
 			return httpx.NotFound(c, err.Error())
 		case errors.Is(err, domain.ErrMachineDeleted):
@@ -154,6 +158,8 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	err = h.service.Delete(ctx, id)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineDeleted):
 			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineNotFound):
@@ -175,6 +181,8 @@ func (h *Handler) Purge(c *fiber.Ctx) error {
 	err = h.service.Purge(ctx, id)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
 		case errors.Is(err, domain.ErrMachineNotFound):
 			return httpx.NotFound(c, err.Error())
 		default:
@@ -194,7 +202,14 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	ctx := appctx.New(c.UserContext())
 	res, err := h.service.List(ctx, &q)
 	if err != nil {
-		return httpx.InternalServerError(c, err.Error())
+		switch {
+		case errors.Is(err, domain.ErrUnauthorizedMachineAccess):
+			return httpx.Forbidden(c, err.Error())
+
+		default:
+			return httpx.InternalServerError(c, err.Error())
+		}
+
 	}
 
 	dtoPage := mapper.ToMachineResponsePage(res)

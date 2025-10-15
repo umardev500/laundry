@@ -19,6 +19,8 @@ func NewMachineSeeder(client *entdb.Client) *MachineSeeder { return &MachineSeed
 func (s *MachineSeeder) Seed(ctx context.Context) error {
 	log.Info().Msg("🌿 Seeding machines...")
 	conn := s.client.GetConn(ctx)
+
+	// Combined machines for multiple tenants
 	machines := []struct {
 		ID            uuid.UUID
 		TenantID      uuid.UUID
@@ -26,8 +28,37 @@ func (s *MachineSeeder) Seed(ctx context.Context) error {
 		Name          string
 		Description   string
 	}{
-		{uuid.MustParse("11111111-1111-1111-1111-111111111111"), uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), uuid.MustParse("11111111-1111-1111-1111-111111111111"), "Washer A", "Front load washer"},
-		{uuid.MustParse("22222222-2222-2222-2222-222222222222"), uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), uuid.MustParse("22222222-2222-2222-2222-222222222222"), "Dryer B", "Commercial dryer"},
+		// Tenant A
+		{
+			ID:            uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+			TenantID:      uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+			MachineTypeID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+			Name:          "Washer A",
+			Description:   "Front load washer",
+		},
+		{
+			ID:            uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+			TenantID:      uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+			MachineTypeID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+			Name:          "Dryer B",
+			Description:   "Commercial dryer",
+		},
+
+		// Tenant B
+		{
+			ID:            uuid.MustParse("33333333-3333-3333-3333-333333333333"),
+			TenantID:      uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			MachineTypeID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+			Name:          "Washer C",
+			Description:   "Front load washer",
+		},
+		{
+			ID:            uuid.MustParse("44444444-4444-4444-4444-444444444444"),
+			TenantID:      uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+			MachineTypeID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+			Name:          "Dryer D",
+			Description:   "Commercial dryer",
+		},
 	}
 
 	for _, m := range machines {

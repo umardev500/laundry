@@ -46,9 +46,14 @@ func (e *entImpl) FindById(ctx *appctx.Context, id uuid.UUID) (*domain.Machine, 
 }
 
 func (e *entImpl) FindByName(ctx *appctx.Context, name string) (*domain.Machine, error) {
+	var err error
 	conn := e.client.GetConn(ctx)
 	qb := conn.Machine.Query().Where(machine.NameEQ(name))
-	qb = e.tenantScopedQuery(ctx, qb)
+
+	qb, err = e.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	entModel, err := qb.Only(ctx)
 	if err != nil {
@@ -78,11 +83,16 @@ func (e *entImpl) Delete(ctx *appctx.Context, id uuid.UUID) error {
 }
 
 func (e *entImpl) List(ctx *appctx.Context, q *query.ListMachineQuery) (*pagination.PageData[domain.Machine], error) {
+	var err error
 	q.Normalize()
 
 	conn := e.client.GetConn(ctx)
 	qb := conn.Machine.Query()
-	qb = e.tenantScopedQuery(ctx, qb)
+
+	qb, err = e.applyScope(ctx, qb)
+	if err != nil {
+		return nil, err
+	}
 
 	if q.Search != "" {
 		qb = qb.Where(
@@ -135,11 +145,23 @@ func (e *entImpl) List(ctx *appctx.Context, q *query.ListMachineQuery) (*paginat
 	}, nil
 }
 
-// tenantScopedQuery ensures queries are filtered by tenant ID.
-func (e *entImpl) tenantScopedQuery(ctx *appctx.Context, qb *ent.MachineQuery) *ent.MachineQuery {
-	tenantID := ctx.TenantID()
-	if tenantID == nil {
-		return qb // fallback for system-wide access (like seeders or platform users)
+// -------------------------
+// Helpers
+// -------------------------
+
+// applyScope ensures tenant-level filtering.
+func (r *entImpl) applyScope(ctx *appctx.Context, qb *ent.MachineQuery) (*ent.MachineQuery, error) {
+	switch ctx.Scope() {
+	case appctx.ScopeTenant:
+		qb = qb.Where(machine.TenantIDEQ(*ctx.TenantID()))
+	case appctx.ScopeUser:
+		// RBAC already handles access, no filtering needed here
+	case appctx.ScopeAdmin:
+	// no filtering for admin
+	default:
+		// Unknown scope, deny access by default
+		return nil, domain.ErrUnauthorizedMachineAccess
 	}
-	return qb.Where(machine.TenantIDEQ(*tenantID))
+
+	return qb, nil
 }
