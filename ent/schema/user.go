@@ -53,5 +53,10 @@ func (User) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),
+
+		edge.To("subscription_events", SubscriptionEvent.Type).
+			Annotations(
+				entsql.OnDelete(entsql.SetNull),
+			),
 	}
 }
