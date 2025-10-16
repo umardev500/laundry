@@ -22,7 +22,7 @@ func (Plan) Fields() []ent.Field {
 
 		field.String("name").NotEmpty().Unique().
 			Comment("Name of the plan e.g. 'Basic', 'Premium'"),
-		field.String("description").Optional(),
+		field.String("description").Optional().Nillable(),
 
 		field.Float("price").Default(0),
 		field.Enum("billing_interval").
