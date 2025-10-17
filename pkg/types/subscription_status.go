@@ -21,23 +21,16 @@ var AllowedSubscriptionTransitions = map[SubscriptionStatus][]SubscriptionStatus
 	SubscriptionStatusActive: {
 		SubscriptionStatusSuspended,
 		SubscriptionStatusCanceled,
-		SubscriptionStatusDeleted,
-		SubscriptionStatusActive, // renewal (extend current cycle)
 	},
 	SubscriptionStatusSuspended: {
-		SubscriptionStatusActive, // resume / renew after suspension
+		SubscriptionStatusActive,
 		SubscriptionStatusCanceled,
-		SubscriptionStatusDeleted,
 	},
 	SubscriptionStatusCanceled: {
-		SubscriptionStatusActive, // renewal or user reactivation
 		SubscriptionStatusExpired,
-		SubscriptionStatusDeleted,
 	},
-	SubscriptionStatusExpired: {
-		SubscriptionStatusActive, // manual renewal after expiration
-	},
-	SubscriptionStatusDeleted: {}, // terminal state — cannot renew
+	SubscriptionStatusExpired: {}, // expired row is immutable
+	SubscriptionStatusDeleted: {}, // deleted row is terminal
 }
 
 func (s SubscriptionStatus) CanTransitionTo(next SubscriptionStatus) bool {

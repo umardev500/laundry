@@ -23,6 +23,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/service"
 	"github.com/umardev500/laundry/internal/feature/servicecategory"
 	"github.com/umardev500/laundry/internal/feature/serviceunit"
+	"github.com/umardev500/laundry/internal/feature/subscription"
 	"github.com/umardev500/laundry/internal/feature/tenant"
 	"github.com/umardev500/laundry/internal/feature/tenantuser"
 	"github.com/umardev500/laundry/internal/feature/user"
@@ -53,6 +54,7 @@ var AppSet = wire.NewSet(
 	order.ProviderSet,
 	orderstatushistory.ProviderSet,
 	plan.ProviderSet,
+	subscription.ProviderSet,
 	validator.New,
 	newRegistrars,
 )
@@ -79,6 +81,7 @@ func newRegistrars(
 	paymentReg *payment.Routes,
 	orderStatusHistoryReg *orderstatushistory.Routes,
 	planReg *plan.Routes,
+	subscriptionReg *subscription.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
@@ -98,5 +101,6 @@ func newRegistrars(
 		paymentReg,
 		orderStatusHistoryReg,
 		planReg,
+		subscriptionReg,
 	}
 }

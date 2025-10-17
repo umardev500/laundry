@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 
 	"github.com/umardev500/laundry/internal/app/appctx"
@@ -49,7 +49,7 @@ func (o *Order) UpdateStatus(newStatus types.OrderStatus) error {
 	// Check for allowed staatus transitions
 	if !o.Status.CanTransitionTo(newStatus) {
 		allowedStatuses := o.Status.AllowedNextStatuses()
-		return errors.NewErrInvalidStatusTransition(
+		return errorsx.NewErrInvalidStatusTransition(
 			string(o.Status),
 			string(newStatus),
 			allowedStatuses,

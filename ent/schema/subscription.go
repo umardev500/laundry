@@ -35,8 +35,10 @@ func (Subscription) Fields() []ent.Field {
 				string(types.SubscriptionStatusDeleted),
 			).
 			Default(string(types.SubscriptionStatusActive)),
-		field.Time("start_date").Default(time.Now),
-		field.Time("end_date").Optional().Nillable(),
+		field.Time("start_date").Optional().Nillable().
+			Comment("Date when the subscription starts"),
+		field.Time("end_date").Optional().Nillable().
+			Comment("Date when the subscription ends"),
 
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

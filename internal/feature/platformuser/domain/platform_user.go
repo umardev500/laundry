@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -36,7 +36,7 @@ func (p *PlatformUser) SetStatus(status types.PlatformUserStatus) error {
 	}
 
 	if !p.Status.CanTransitionTo(status) {
-		return errors.NewErrInvalidStatusTransition(
+		return errorsx.NewErrInvalidStatusTransition(
 			string(p.Status),
 			string(status),
 			p.Status.AllowedNextStatuses(),

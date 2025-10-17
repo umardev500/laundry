@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
-	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -50,7 +50,7 @@ func (t *Tenant) SetStatus(status types.TenantStatus) error {
 
 	if !t.Status.CanTransitionTo(status) {
 		allowedStatuses := t.Status.AllowedNextStatuses()
-		return errors.NewErrInvalidStatusTransition(
+		return errorsx.NewErrInvalidStatusTransition(
 			string(t.Status),
 			string(status.Normalize()),
 			allowedStatuses,

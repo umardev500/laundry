@@ -79,10 +79,7 @@ func ToResponseList(list []*domain.Plan) []*dto.PlanResponse {
 
 // ToResponsePage converts a paginated domain Plan slice to a paginated DTO slice.
 func ToResponsePage(data *pagination.PageData[domain.Plan]) *pagination.PageData[dto.PlanResponse] {
-	res := make([]*dto.PlanResponse, len(data.Data))
-	for i, m := range data.Data {
-		res[i] = ToResponse(m)
-	}
+	res := ToResponseList(data.Data)
 	return &pagination.PageData[dto.PlanResponse]{
 		Data:  res,
 		Total: data.Total,

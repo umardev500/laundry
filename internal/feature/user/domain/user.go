@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 )
 
@@ -49,7 +49,7 @@ func (u *User) SetStatus(status types.UserStatus) error {
 
 	// Optional rule: prevent reactivating deleted users.
 	if !u.Status.CanTransitionTo(status) {
-		return errors.NewErrInvalidStatusTransition(
+		return errorsx.NewErrInvalidStatusTransition(
 			string(u.Status),
 			string(status),
 			u.Status.AllowedNextStatuses(),

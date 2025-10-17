@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/umardev500/laundry/internal/feature/order/domain"
 	"github.com/umardev500/laundry/internal/feature/order/dto"
-	errorsPkg "github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/types"
 
@@ -18,16 +18,13 @@ func handleOrderError(c *fiber.Ctx, err error) error {
 	var svcErr *domain.ServiceUnavailableError
 	isServiceUnavailable := errors.As(err, &svcErr)
 
-	var transitionErr *errorsPkg.ErrInvalidStatusTransition[types.OrderStatus]
-	isTransitionError := errors.As(err, &transitionErr)
-
 	switch {
-	case isTransitionError:
+	case errorsx.IsInvalidTransitionErr[types.OrderStatus](err):
 		return httpx.JSONErrorWithData(
 			c,
 			fiber.StatusBadRequest,
 			"invalid status transition",
-			transitionErr,
+			err,
 			err,
 		)
 

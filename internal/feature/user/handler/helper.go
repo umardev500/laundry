@@ -7,7 +7,7 @@ import (
 	"github.com/umardev500/laundry/internal/feature/user/domain"
 	"github.com/umardev500/laundry/pkg/httpx"
 
-	errorsPkg "github.com/umardev500/laundry/pkg/errors"
+	errorsPkg "github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 )
 

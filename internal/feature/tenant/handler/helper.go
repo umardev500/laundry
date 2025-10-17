@@ -8,7 +8,7 @@ import (
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/types"
 
-	errorsPkg "github.com/umardev500/laundry/pkg/errors"
+	errorsPkg "github.com/umardev500/laundry/pkg/errorsx"
 )
 
 // handleTenantError centralizes HTTP error mapping for tenant module

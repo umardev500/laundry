@@ -8,7 +8,7 @@ import (
 	"github.com/umardev500/laundry/pkg/httpx"
 	"github.com/umardev500/laundry/pkg/types"
 
-	errorsPkg "github.com/umardev500/laundry/pkg/errors"
+	errorsPkg "github.com/umardev500/laundry/pkg/errorsx"
 )
 
 // handleTenantUserError maps domain-level tenant user errors to proper HTTP responses.

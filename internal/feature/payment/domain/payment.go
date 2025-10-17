@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umardev500/laundry/internal/app/appctx"
-	"github.com/umardev500/laundry/pkg/errors"
+	"github.com/umardev500/laundry/pkg/errorsx"
 	"github.com/umardev500/laundry/pkg/types"
 
 	paymentMethodDomain "github.com/umardev500/laundry/internal/feature/paymentmethod/domain"
@@ -182,7 +182,7 @@ func (p *Payment) UpdateStatus(newStatus types.PaymentStatus) error {
 	if !p.Status.CanTransitionTo(newStatus) {
 		allowedStatuses := p.Status.AllowedNextStatuses()
 
-		return errors.NewErrInvalidStatusTransition(
+		return errorsx.NewErrInvalidStatusTransition(
 			string(p.Status),
 			string(newStatus.Normalize()),
 			allowedStatuses,
