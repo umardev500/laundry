@@ -96,12 +96,12 @@ func (s *planService) GetByName(ctx *appctx.Context, name string) (*domain.Plan,
 	p, err := s.repo.FindByName(ctx, name)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrPlanNotFound
+			return nil, domain.NewPlanError(domain.ErrPlanNotFound)
 		}
 		return nil, err
 	}
 	if p.IsDeleted() {
-		return nil, domain.ErrPlanDeleted
+		return nil, domain.NewPlanError(domain.ErrPlanDeleted)
 	}
 	return p, nil
 }
@@ -148,12 +148,12 @@ func (s *planService) findExisting(ctx *appctx.Context, id uuid.UUID) (*domain.P
 	p, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrPlanNotFound
+			return nil, domain.NewPlanError(domain.ErrPlanNotFound)
 		}
 		return nil, err
 	}
 	if p.IsDeleted() {
-		return nil, domain.ErrPlanDeleted
+		return nil, domain.NewPlanError(domain.ErrPlanDeleted)
 	}
 	return p, nil
 }
@@ -163,7 +163,7 @@ func (s *planService) findAllowDeleted(ctx *appctx.Context, id uuid.UUID) (*doma
 	p, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrPlanNotFound
+			return nil, domain.NewPlanError(domain.ErrPlanNotFound)
 		}
 		return nil, err
 	}

@@ -60,6 +60,13 @@ func (Subscription) Edges() []ent.Edge {
 			Required().
 			Unique().
 			Immutable(),
+
+		edge.From("plan", Plan.Type).
+			Ref("subscriptions").
+			Field("plan_id").
+			Required().
+			Unique().
+			Immutable(),
 	}
 }
 

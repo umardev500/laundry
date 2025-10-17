@@ -57,7 +57,7 @@ func (s *PlanSeeder) Seed(ctx context.Context) error {
 			Features: map[string]any{
 				"max_users": 10,
 			},
-			Active:      true,
+			Active:      false,
 			Permissions: []uuid.UUID{uuid.MustParse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa")}, // Example permission ID
 		},
 	}

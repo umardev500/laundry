@@ -9,28 +9,44 @@ import (
 	"github.com/umardev500/laundry/internal/feature/subscription/query"
 	"github.com/umardev500/laundry/internal/feature/subscription/repository"
 	"github.com/umardev500/laundry/pkg/pagination"
+
+	planContract "github.com/umardev500/laundry/internal/feature/plan/contract"
+	planDomain "github.com/umardev500/laundry/internal/feature/plan/domain"
 )
 
 type subscriptionService struct {
-	repo repository.Repository
+	repo        repository.Repository
+	planService planContract.Plan
 }
 
 // NewSubscriptionService creates a new Subscription service.
-func NewSubscriptionService(repo repository.Repository) contract.Service {
+func NewSubscriptionService(repo repository.Repository, planService planContract.Plan) contract.Service {
 	return &subscriptionService{
-		repo: repo,
+		repo:        repo,
+		planService: planService,
 	}
 }
 
 // Create registers a new subscription.
 func (s *subscriptionService) Create(ctx *appctx.Context, sub *domain.Subscription) (*domain.Subscription, error) {
+	// Find plan exist
+	plan, err := s.planService.GetByID(ctx, sub.PlanID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check plan is active or not
+	if !plan.IsActive() {
+		return nil, planDomain.NewPlanError(planDomain.ErrPlanNotActive)
+	}
+
 	existing, err := s.repo.FindActiveByTenantID(ctx, sub.TenantID)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, err
 	}
 
 	if existing != nil {
-		return nil, domain.ErrSubscriptionAlreadyExists
+		return nil, domain.NewSubscriptionError(domain.ErrSubscriptionAlreadyExists)
 	}
 
 	if sub.ID == uuid.Nil {
@@ -65,7 +81,7 @@ func (s *subscriptionService) UpdateStatus(ctx *appctx.Context, sub *domain.Subs
 	}
 
 	if activeExisting != nil {
-		return nil, domain.ErrSubscriptionAlreadyExists
+		return nil, domain.NewSubscriptionError(domain.ErrSubscriptionAlreadyExists)
 	}
 
 	if err := existing.SetStatus(sub.Status); err != nil {
@@ -114,12 +130,12 @@ func (s *subscriptionService) FindByID(ctx *appctx.Context, id uuid.UUID, q *que
 	sub, err := s.repo.FindByID(ctx, id, q)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrSubscriptionNotFound
+			return nil, domain.NewSubscriptionError(domain.ErrSubscriptionNotFound)
 		}
 		return nil, err
 	}
 	if !q.IncludeDeleted && sub.IsDeleted() {
-		return nil, domain.ErrSubscriptionDeleted
+		return nil, domain.NewSubscriptionError(domain.ErrSubscriptionDeleted)
 	}
 	return sub, nil
 }
@@ -139,12 +155,12 @@ func (s *subscriptionService) findExisting(ctx *appctx.Context, id uuid.UUID) (*
 	sub, err := s.repo.FindByID(ctx, id, q)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrSubscriptionNotFound
+			return nil, domain.NewSubscriptionError(domain.ErrSubscriptionNotFound)
 		}
 		return nil, err
 	}
 	if sub.IsDeleted() {
-		return nil, domain.ErrSubscriptionDeleted
+		return nil, domain.NewSubscriptionError(domain.ErrSubscriptionDeleted)
 	}
 	return sub, nil
 }
@@ -155,7 +171,7 @@ func (s *subscriptionService) findAllowDeleted(ctx *appctx.Context, id uuid.UUID
 	sub, err := s.repo.FindByID(ctx, id, q)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, domain.ErrSubscriptionNotFound
+			return nil, domain.NewSubscriptionError(domain.ErrSubscriptionNotFound)
 		}
 		return nil, err
 	}

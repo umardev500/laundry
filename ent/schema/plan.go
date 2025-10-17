@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -48,5 +49,10 @@ func (Plan) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("permissions", Permission.Type).
 			Ref("plans"),
+
+		edge.To("subscriptions", Subscription.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 	}
 }
