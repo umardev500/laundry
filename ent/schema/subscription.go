@@ -28,13 +28,14 @@ func (Subscription) Fields() []ent.Field {
 
 		field.Enum("status").
 			Values(
+				string(types.SubscriptionStatusPending),
 				string(types.SubscriptionStatusActive),
 				string(types.SubscriptionStatusExpired),
 				string(types.SubscriptionStatusCanceled),
 				string(types.SubscriptionStatusSuspended),
 				string(types.SubscriptionStatusDeleted),
 			).
-			Default(string(types.SubscriptionStatusActive)),
+			Default(string(types.SubscriptionStatusPending)),
 		field.Time("start_date").Optional().Nillable().
 			Comment("Date when the subscription starts"),
 		field.Time("end_date").Optional().Nillable().

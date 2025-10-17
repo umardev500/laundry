@@ -13,6 +13,9 @@ import (
 // handleSubscriptionError centralizes error handling for subscription operations.
 func handleSubscriptionError(c *fiber.Ctx, err error) error {
 	switch {
+	case errors.Is(err, domain.ErrSubscriptionAlreadyExists):
+		return httpx.BadRequest(c, err.Error())
+
 	case errorsx.IsInvalidTransitionErr[types.SubscriptionStatus](err):
 		return httpx.JSONErrorWithData(
 			c,
@@ -21,6 +24,7 @@ func handleSubscriptionError(c *fiber.Ctx, err error) error {
 			err,
 			err,
 		)
+
 	case errors.Is(err, domain.ErrSubscriptionDeleted),
 		errors.Is(err, domain.ErrUnauthorizedSubscriptionAccess):
 		return httpx.Forbidden(c, err.Error())

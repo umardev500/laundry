@@ -24,6 +24,15 @@ func NewSubscriptionService(repo repository.Repository) contract.Service {
 
 // Create registers a new subscription.
 func (s *subscriptionService) Create(ctx *appctx.Context, sub *domain.Subscription) (*domain.Subscription, error) {
+	existing, err := s.repo.FindActiveByTenantID(ctx, sub.TenantID)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, err
+	}
+
+	if existing != nil {
+		return nil, domain.ErrSubscriptionAlreadyExists
+	}
+
 	if sub.ID == uuid.Nil {
 		sub.ID = uuid.New()
 	}
@@ -48,6 +57,15 @@ func (s *subscriptionService) UpdateStatus(ctx *appctx.Context, sub *domain.Subs
 	existing, err := s.findExisting(ctx, sub.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	activeExisting, err := s.repo.FindActiveByTenantID(ctx, existing.TenantID)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, err
+	}
+
+	if activeExisting != nil {
+		return nil, domain.ErrSubscriptionAlreadyExists
 	}
 
 	if err := existing.SetStatus(sub.Status); err != nil {

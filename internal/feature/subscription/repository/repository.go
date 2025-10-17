@@ -12,6 +12,7 @@ import (
 type Repository interface {
 	Create(ctx *appctx.Context, s *domain.Subscription) (*domain.Subscription, error)
 	FindByID(ctx *appctx.Context, id uuid.UUID, q *query.FindSubscriptionByIDQuery) (*domain.Subscription, error)
+	FindActiveByTenantID(ctx *appctx.Context, tenantID uuid.UUID) (*domain.Subscription, error)
 	Update(ctx *appctx.Context, s *domain.Subscription) (*domain.Subscription, error)
 	Delete(ctx *appctx.Context, id uuid.UUID) error
 	List(ctx *appctx.Context, q *query.ListSubscriptionQuery) (*pagination.PageData[domain.Subscription], error)

@@ -52,7 +52,7 @@ func (s *SubscriptionSeeder) Seed(ctx context.Context) error {
 			ID:       uuid.MustParse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
 			TenantID: uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
 			PlanID:   uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), // Premium
-			Status:   types.SubscriptionStatusActive,
+			Status:   types.SubscriptionStatusPending,
 			StartDate: func() *time.Time {
 				t := time.Now().AddDate(0, 0, -5)
 				return &t

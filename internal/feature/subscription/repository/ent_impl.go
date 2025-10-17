@@ -64,6 +64,21 @@ func (r *entImpl) FindByID(ctx *appctx.Context, id uuid.UUID, q *query.FindSubsc
 	return mapper.FromEnt(entModel), nil
 }
 
+// FindActiveByTenantID retrieves the active subscription for a tenant.
+func (r *entImpl) FindActiveByTenantID(ctx *appctx.Context, tenantID uuid.UUID) (*domain.Subscription, error) {
+	conn := r.client.GetConn(ctx)
+	entModel, err := conn.Subscription.
+		Query().
+		Where(subscription.TenantIDEQ(tenantID)).
+		Where(subscription.DeletedAtIsNil()).
+		Where(subscription.StatusEQ(subscription.Status(types.SubscriptionStatusActive))).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.FromEnt(entModel), nil
+}
+
 // Update modifies an existing subscription record.
 func (r *entImpl) Update(ctx *appctx.Context, s *domain.Subscription) (*domain.Subscription, error) {
 	conn := r.client.GetConn(ctx)

@@ -27,7 +27,7 @@ func NewSubscription(tenantID, planID uuid.UUID, startDate, endDate *time.Time) 
 		ID:        uuid.New(),
 		TenantID:  tenantID,
 		PlanID:    planID,
-		Status:    types.SubscriptionStatusActive,
+		Status:    types.SubscriptionStatusPending,
 		StartDate: startDate,
 		EndDate:   endDate,
 		CreatedAt: time.Now().UTC(),
