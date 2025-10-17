@@ -31,5 +31,7 @@ func (Regency) Edges() []ent.Edge {
 			Required(),
 
 		edge.To("districts", District.Type),
+
+		edge.To("addresses", Addresses.Type),
 	}
 }

@@ -28,5 +28,7 @@ func (Village) Edges() []ent.Edge {
 			Field("district_id").
 			Unique().
 			Required(),
+
+		edge.To("addresses", Addresses.Type),
 	}
 }

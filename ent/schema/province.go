@@ -24,5 +24,7 @@ func (Province) Edges() []ent.Edge {
 	return []ent.Edge{
 		// One-to-many: Province has many Regencies
 		edge.To("regencies", Regency.Type),
+
+		edge.To("addresses", Addresses.Type),
 	}
 }

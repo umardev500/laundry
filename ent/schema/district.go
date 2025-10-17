@@ -30,5 +30,7 @@ func (District) Edges() []ent.Edge {
 			Required(),
 
 		edge.To("villages", Village.Type),
+
+		edge.To("addresses", Addresses.Type),
 	}
 }
