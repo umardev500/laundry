@@ -49,6 +49,13 @@ wire:
 	@echo "🔗 Generating Wire DI code..."
 	@wire ./internal/di
 
+# Seed DB using SQL file
+db-seed-sql:
+	@echo "🌱 Seeding database using SQL file..."
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -f /home/umar/Desktop/laundry/sql/seed/indonesia_regions.sql
+	@echo "✅ Database seeded from SQL file"
+
+
 # Drop DB forcefully
 db-drop-force:
 	@echo "⚠️ Forcing drop of database $(DB_NAME)..."
