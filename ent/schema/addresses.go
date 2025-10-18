@@ -35,6 +35,10 @@ func (Addresses) Fields() []ent.Field {
 // Edges of the Addresses.
 func (Addresses) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("addresses").
+			Required(),
+
 		edge.From("province", Province.Type).
 			Ref("addresses").
 			Field("province_id").

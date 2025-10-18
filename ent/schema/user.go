@@ -58,5 +58,7 @@ func (User) Edges() []ent.Edge {
 			Annotations(
 				entsql.OnDelete(entsql.SetNull),
 			),
+
+		edge.To("addresses", Addresses.Type),
 	}
 }
