@@ -24,6 +24,10 @@ func FromEntDistrictList(list []*ent.District) []*domain.District {
 }
 
 func ToResponseDistrict(d *domain.District) *dto.DistrictResponse {
+	if d == nil {
+		return nil
+	}
+
 	return &dto.DistrictResponse{
 		ID:        d.ID,
 		RegencyID: d.RegencyID,

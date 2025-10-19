@@ -9,6 +9,7 @@ import (
 	fiberApp "github.com/umardev500/laundry/internal/app/fiber"
 	"github.com/umardev500/laundry/internal/app/router"
 	"github.com/umardev500/laundry/internal/config"
+	"github.com/umardev500/laundry/internal/feature/address"
 	"github.com/umardev500/laundry/internal/feature/auth"
 	"github.com/umardev500/laundry/internal/feature/machine"
 	"github.com/umardev500/laundry/internal/feature/machinetype"
@@ -57,6 +58,7 @@ var AppSet = wire.NewSet(
 	plan.ProviderSet,
 	subscription.ProviderSet,
 	region.ProviderSet,
+	address.ProviderSet,
 	validator.New,
 	newRegistrars,
 )
@@ -85,6 +87,7 @@ func newRegistrars(
 	planReg *plan.Routes,
 	subscriptionReg *subscription.Routes,
 	regionReg *region.Routes,
+	addressReg *address.Routes,
 ) []router.RouteRegistrar {
 	return []router.RouteRegistrar{
 		userReg,
@@ -106,5 +109,6 @@ func newRegistrars(
 		planReg,
 		subscriptionReg,
 		regionReg,
+		addressReg,
 	}
 }

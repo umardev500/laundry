@@ -24,6 +24,10 @@ func FromEntVillageList(list []*ent.Village) []*domain.Village {
 }
 
 func ToResponseVillage(d *domain.Village) *dto.VillageResponse {
+	if d == nil {
+		return nil
+	}
+
 	return &dto.VillageResponse{
 		ID:         d.ID,
 		DistrictID: d.DistrictID,

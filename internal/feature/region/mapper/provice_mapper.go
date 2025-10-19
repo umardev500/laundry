@@ -23,6 +23,10 @@ func FromEntProvinceList(list []*ent.Province) []*domain.Province {
 }
 
 func ToResponseProvince(d *domain.Province) *dto.ProvinceResponse {
+	if d == nil {
+		return nil
+	}
+
 	return &dto.ProvinceResponse{
 		ID:   d.ID,
 		Name: d.Name,

@@ -37,6 +37,7 @@ func (Addresses) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("addresses").
+			Unique().
 			Required(),
 
 		edge.From("province", Province.Type).

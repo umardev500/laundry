@@ -24,6 +24,10 @@ func FromEntRegencyList(list []*ent.Regency) []*domain.Regency {
 }
 
 func ToResponseRegency(d *domain.Regency) *dto.RegencyResponse {
+	if d == nil {
+		return nil
+	}
+
 	return &dto.RegencyResponse{
 		ID:         d.ID,
 		ProvinceID: d.ProvinceID,
